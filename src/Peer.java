@@ -1,12 +1,16 @@
 
 import java.util.*;
 import java.lang.*;
+import java.io.*;
 
 
 public class Peer{
+	
+	
 	int nPref; //number of preferred peers
 	int updatePrefInterval; //update preferred peers every updatePrefInterval seconds
 	int opUnchokeInterval;
+	int peerID; 
 	String fileName; 
 	int fileSize;
 	int pieceSize; 
@@ -15,8 +19,60 @@ public class Peer{
 	HashMap<Integer, NeighborPeer> peers; //Contains 
 	int [] preferredPeers; //contains the peer ids of preferred peers
 	
-	public void obtainConfFiles(){
-	// Read Common.cfg and PeerInfo.cfg; set variables appropriately	
+	public Peer(int peerID){
+		this.peerID = peerID; //this should be supplied as a command-line parameter when PeerProcess is started
+		fileName = "";
+		peers = new HashMap<Integer, NeighborPeer>(); 
+
+	}
+	
+	public void obtainConfFiles(String commonLocation, String peerInfoLocation){
+	// Read Common.cfg and PeerInfo.cfg; set variables appropriately
+		try
+		{
+			Scanner scan;
+			/*
+			reading Common.cfg: 
+				NumberOfPreferredNeighbors 2 
+				UnchokingInterval 5 
+				OptimisticUnchokingInterval 15 
+				FileName TheFile.dat 
+				FileSize 10000232 
+				PieceSize 32768 
+			*/
+			scan = new Scanner(new File(commonLocation));
+			for(int i = 0; i < 5; i++)
+			{
+				String variable = scan.next();
+				if(!variable.equals("FileName"))
+				{
+					int value = scan.nextInt(); 
+					switch(variable)
+					{
+					case "NumberOfPreferredNeighbors": nPref = value; break;
+					case "UnchokingInterval": updatePrefInterval = value; break; 
+					case "OptimisticUnchokingInterval": opUnchokeInterval = value; break; 
+					case "FileSize": fileSize = value; break;
+					case "PieceSize": pieceSize = value; break;
+					default: break;					
+					}
+				}
+				else{
+					String name = scan.next();
+					fileName = name; 
+				}
+			}		
+			scan.close();
+		
+			//reading PeerInfo.cfg
+			//scan = new Scanner(new File(peerInfoLocation)); 
+			
+		}
+		catch(Exception e){
+			System.err.println("Error! "+ e.toString());
+			System.err.println("Probably a conf file error. ");
+	
+		}
 	}	
 	
 	public void joinTorrent(){
