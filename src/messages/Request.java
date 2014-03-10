@@ -1,5 +1,6 @@
+package messages;
 
-public class Handshake extends Message {
+public class Request extends Message {
 
 	@Override
 	public void handle() {

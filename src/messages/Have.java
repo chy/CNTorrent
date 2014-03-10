@@ -1,5 +1,6 @@
+package messages;
 
-public class Request extends Message {
+public class Have extends Message{
 
 	@Override
 	public void handle() {

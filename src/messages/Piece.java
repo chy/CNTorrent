@@ -1,12 +1,12 @@
+package messages;
 
-public class Unchoke extends Message {
+public class Piece extends Message{
 
 	@Override
 	public void handle() {
 		// TODO Auto-generated method stub
 		
 	}
-	
 	
 
 }
