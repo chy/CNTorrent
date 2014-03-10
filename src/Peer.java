@@ -1,88 +1,187 @@
-import java.util.*;
-
-import java.lang.*;
-import java.io.*;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ServerSocket;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Scanner;
 
 public class Peer
 {
-	
-	
+
 	int nPref; //number of preferred peers
 	int updatePrefInterval; //update preferred peers every updatePrefInterval seconds
 	int opUnchokeInterval;
 	int peerID; 
 	String fileName; 
 	int fileSize;
-	int pieceSize; 
+	int pieceSize;
+	int numPieces;
+	boolean isDone;
 	boolean [] bitfield; //tracks which pieces of the file have been downloaded
 	int numUnfinishedPeers; //leave the torrent when this is 0
 	HashMap<Integer, NeighborPeer> peers; //Contains 
 	int [] preferredPeers; //contains the peer ids of preferred peers
+	String hostname;
+	int portNumber;
+	ServerSocket serverSocket; // socket for uploading to peers
 	
 	public Peer(int peerID)
 	{
 		this.peerID = peerID; //this should be supplied as a command-line parameter when PeerProcess is started
-		fileName = "";
-		peers = new HashMap<Integer, NeighborPeer>(); 
-
+		peers = new HashMap<Integer, NeighborPeer>();
 	}
 	
-	public void obtainConfFiles(String commonLocation, String peerInfoLocation)
+	/**
+	 * This method is called by PeerProcess. It will contain the main loop of our
+	 * program.
+	 */
+	public void run()
 	{
-	// Read Common.cfg and PeerInfo.cfg; set variables appropriately
+		// get info from config files
+		readConfigFiles();
+		// establish connections with all peers above this peer in the peer info config files
+		joinTorrent();
+	}
+	
+	public void readConfigFiles()
+	{
+		readCommonConfig();
+
+		// initialization after reading common config file
+		int tempNumPieces = fileSize / pieceSize;
+		numPieces = (tempNumPieces * pieceSize == fileSize) ? tempNumPieces : (tempNumPieces + 1);
+		bitfield = new boolean[numPieces];
+
+		readPeerInfoConfig();
+
+		// initialization after reading peer info config file
+		if (isDone)
+		{
+			Arrays.fill(bitfield, true);
+		}
+		else
+		{
+			Arrays.fill(bitfield, false);
+		}
+	}
+	
+	public void readCommonConfig()
+	{
+		/*
+		 * Example Common.cfg file:
+		 * NumberOfPreferredNeighbors 2
+		 * UnchokingInterval 5
+		 * OptimisticUnchokingInterval 15
+		 * FileName TheFile.dat
+		 * FileSize 10000232
+		 * PieceSize 32768
+		 */
+		String fileLocation = "Common.cfg";
+		Scanner scan = null;
 		try
 		{
-			Scanner scan;
-			/*
-			reading Common.cfg: 
-				NumberOfPreferredNeighbors 2 
-				UnchokingInterval 5 
-				OptimisticUnchokingInterval 15 
-				FileName TheFile.dat 
-				FileSize 10000232 
-				PieceSize 32768 
-			*/
-			scan = new Scanner(new File(commonLocation));
-			for(int i = 0; i < 5; i++)
+			scan = new Scanner(new File(fileLocation));
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Cannot find file: " + fileLocation);
+			e.printStackTrace();
+		}
+
+		for (int i = 0; i < 5; i++)
+		{
+			String key = scan.next();
+			if (!key.equals("FileName"))
 			{
-				String variable = scan.next();
-				if(!variable.equals("FileName"))
+				int value = scan.nextInt(); 
+				switch (key)
 				{
-					int value = scan.nextInt(); 
-					switch(variable)
-					{
-					case "NumberOfPreferredNeighbors": nPref = value; break;
-					case "UnchokingInterval": updatePrefInterval = value; break; 
-					case "OptimisticUnchokingInterval": opUnchokeInterval = value; break; 
-					case "FileSize": fileSize = value; break;
-					case "PieceSize": pieceSize = value; break;
-					default: break;					
-					}
+				case "NumberOfPreferredNeighbors": nPref = value; break;
+				case "UnchokingInterval": updatePrefInterval = value; break; 
+				case "OptimisticUnchokingInterval": opUnchokeInterval = value; break; 
+				case "FileSize": fileSize = value; break;
+				case "PieceSize": pieceSize = value; break;
+				default: break;					
 				}
-				else{
-					String name = scan.next();
-					fileName = name; 
-				}
-			}		
-			scan.close();
-		
-			//reading PeerInfo.cfg
-			//scan = new Scanner(new File(peerInfoLocation)); 
-			
+			}
+			else
+			{
+				String name = scan.next();
+				fileName = name;
+			}
 		}
-		catch(Exception e){
-			System.err.println("Error! "+ e.toString());
-			System.err.println("Probably a conf file error. ");
-	
+
+		scan.close();
+	}
+
+	public void readPeerInfoConfig()
+	{
+		/*
+		 * Example PeerInfo.cfg:
+		 * 1001 sun114-11.cise.ufl.edu 6008 1
+		 * 1002 sun114-12.cise.ufl.edu 6008 0
+		 * 1003 sun114-13.cise.ufl.edu 6008 0
+		 * 1004 sun114-14.cise.ufl.edu 6008 0
+		 * 1005 sun114-21.cise.ufl.edu 6008 0
+		 * 1006 sun114-22.cise.ufl.edu 6008 0
+		 */
+		String fileLocation = "PeerInfo.cfg";
+		Scanner scan = null;
+		try
+		{
+			scan = new Scanner(new File(fileLocation));
 		}
-	}	
-	
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Cannot find file: " + fileLocation);
+			e.printStackTrace();
+		}
+
+		// iterate through peers that have already been started
+		int ID;
+		while ((ID = scan.nextInt()) != peerID)
+		{
+			String neighborHostname = scan.next();
+			int neighborPortNumber = scan.nextInt();
+			boolean neighborIsDone = (scan.nextInt() == 1);
+			NeighborPeer neighborPeer = new NeighborPeer(ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
+			peers.put(ID, neighborPeer);
+			neighborPeer.establishConnection(); // establish connections with peers before this one
+		}
+
+		// we have reached this peer in PeerInfo.cfg
+		hostname = scan.next();
+		portNumber = scan.nextInt();
+		isDone = (scan.nextInt() == 1);
+
+		// get rest of info for peers
+		while (scan.hasNext())
+		{
+			ID = scan.nextInt();
+			String neighborHostname = scan.next();
+			int neighborPortNumber = scan.nextInt();
+			boolean neighborIsDone = (scan.nextInt() == 1);
+			NeighborPeer neighborPeer = new NeighborPeer(ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
+			peers.put(ID, neighborPeer);
+		}
+
+		scan.close();
+	}
+
+	/**
+	 * Open TCP connections and handshake with all previous peers in the peer
+	 * info config file
+	 */
 	public void joinTorrent()
 	{
-		// open TCP connections and handshake with all previous
-		// (already-started) peers in the peer_info conf file
-
+		/*
+		Iterator<NeighborPeer> iter = peers.values().iterator();
+		while (iter.hasNext())
+		{
+			NeighborPeer neighborPeer = iter.next();
+			
+		}
+		*/
 	}
 
 	public void leaveTorrent()
