@@ -1,30 +1,10 @@
-public class Message
+public abstract class Message
 {
-
-	public enum MessageType
+	public static void parseMessage(String[] data)
 	{
-
-		CHOKE (0),
-		UNCHOKE (1),
-		INTERESTED (2),
-		NOT_INTERESTED (3),
-		HAVE (4),
-		BITFIELD (5),
-		REQUEST (6),
-		PIECE (7);
-
-		private int value;
-
-		private MessageType(int value)
-		{
-			this.value = value;
-		}
-
-		public int getValue()
-		{
-			return value;
-		}
-
+			
 	}
+			
+	public abstract void handle();
 
 }
