@@ -20,7 +20,7 @@ public class Peer{
 	}	
 	
 	public void joinTorrent(){
-	//	pen TCP connections and handshake with all previous (already-started) peers in the peer_info conf file
+	//	open TCP connections and handshake with all previous (already-started) peers in the peer_info conf file
 	
 	}
 	public void leaveTorrent(){
@@ -32,19 +32,38 @@ public class Peer{
 	}
 */
 	public void updatePreferred(){
+		/* If the peer hasn't downloaded the whole file: 
+		 * 		Calculate the download rate for each interested peer during the previous download interval 
+		 * 		(p seconds, unchokeInterval seconds). 
+		 * 		Unchoke the top nPref senders; choke anyone else who was unchoked before (except the optimistically unchoked peer).
+		 * If the peer has downloaded the whole file: 
+		 * 		choose preferred peers randomly from the interested peers. 
+		 * 		Unchoke them.
+		 * 		choke everyone else except the optimistically unchoked peer.
+		 */
 		
 	}
 	
 	public void optimisticUnchoke(){
-
+	/* Select a random peer from chocked peers interested in your data; 
+	 * unchoke them. (send them an unchoke message, mark them as unchoked). 
+	 * Choke the peer that was previously optimistically unchoked.
+	 */
+		
 	}
 	
-	public void choke(){
-	
+	public void choke(int peerID){
+	/*
+	 * Chokes the specified PeerID
+	 */
+		
 	}
 	
-	public void unchoke(){
-	
+	public void unchoke(int peerID){
+	/*
+	 * Unchokes the specified PeerID
+	 */
+		
 	}
 	public void log(String s){
 		
