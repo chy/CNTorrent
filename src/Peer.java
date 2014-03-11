@@ -79,15 +79,14 @@ public class Peer
 		 * PieceSize 32768
 		 */
 		String fileLocation = "Common.cfg";
-		Scanner scan = null;
+		Scanner scan;
 		try
 		{
 			scan = new Scanner(new File(fileLocation));
 		}
 		catch (FileNotFoundException e)
 		{
-			System.err.println("Cannot find file: " + fileLocation);
-			e.printStackTrace();
+			throw new RuntimeException("Cannot find file: " + fileLocation, e);
 		}
 
 		for (int i = 0; i < 5; i++)
@@ -128,15 +127,14 @@ public class Peer
 		 * 1006 sun114-22.cise.ufl.edu 6008 0
 		 */
 		String fileLocation = "PeerInfo.cfg";
-		Scanner scan = null;
+		Scanner scan;
 		try
 		{
 			scan = new Scanner(new File(fileLocation));
 		}
 		catch (FileNotFoundException e)
 		{
-			System.err.println("Cannot find file: " + fileLocation);
-			e.printStackTrace();
+			throw new RuntimeException("Cannot find file: " + fileLocation, e);
 		}
 
 		// iterate through peers that have already been started

@@ -5,7 +5,8 @@ public class PeerProcess
 	{
 		if (args.length != 1)
 		{
-			System.out.println("Usage: java peerProcess <peer_ID>");
+			System.err.println("Usage: java peerProcess <peer_ID>");
+			System.exit(1);
 		}
 
 		int peerID = Integer.parseInt(args[0]);
