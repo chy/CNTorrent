@@ -24,4 +24,14 @@ public enum MessageType
 		return value;
 	}
 
+	public static MessageType getMessageType(int value)
+	{
+		for (MessageType messageType : MessageType.values())
+		{
+			if (messageType.getValue() == value)
+				return messageType;
+		}
+		throw new RuntimeException(value + " is not a valid message type value");
+	}
+
 }

@@ -1,6 +1,7 @@
 package peers;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -8,7 +9,7 @@ import java.util.Arrays;
 public class NeighborPeer
 {
 
-	final int peerID;
+	final int PEER_ID;
 	public boolean isDone;
 	public boolean[] bitfield;
 	public boolean amChoking; // am I choking this peer?
@@ -19,10 +20,11 @@ public class NeighborPeer
 	final String hostname;
 	final int portNumber;
 	public Socket socket; // socket for downloading from peers
+	public PrintWriter out;
 
 	public NeighborPeer(int peerID, String hostname, int portNumber, boolean isDone, int numPieces)
 	{
-		this.peerID = peerID;
+		this.PEER_ID = peerID;
 		this.hostname = hostname;
 		this.portNumber = portNumber;
 		this.isDone = isDone;
@@ -43,6 +45,7 @@ public class NeighborPeer
 		try
 		{
 			socket = new Socket(hostname, portNumber);
+			out = new PrintWriter(socket.getOutputStream(), true);
 		}
 		catch (UnknownHostException e)
 		{

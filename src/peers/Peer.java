@@ -2,11 +2,14 @@ package peers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 
 import messages.Choke;
@@ -25,7 +28,7 @@ public class Peer
 	private int fileSize;
 	private int pieceSize;
 	private int numPieces;
-	private boolean isDone;
+	private boolean isDone; // when THIS peer is done downloading the file
 	public static boolean[] bitfield; // tracks which pieces of the file have been downloaded
 	private int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
@@ -34,7 +37,8 @@ public class Peer
 	private int optimisticallyUnchokedPeer; // the peer id of the current optimistically-unchoked peer
 	private String hostname;
 	private int portNumber;
-	private ServerSocket serverSocket; // socket for uploading to peers
+	public static ServerSocket serverSocket; // socket for uploading to peers
+	volatile Queue<String> messageQueue = new LinkedList<String>();
 	
 	public Peer(int peerID)
 	{
@@ -51,8 +55,37 @@ public class Peer
 		readConfigFiles();
 		// establish connections with all peers above this peer in the peer info config files
 		joinTorrent();
+
+		// main loop
+		while (numUnfinishedPeers == 0)
+		{
+			Message m = readFromBuffer();
+			executeMessage(m);
+		}
+
+		// when all peers have downloaded the file, leave the torrent
+		leaveTorrent();
 	}
-	
+
+	private synchronized Message readFromBuffer()
+	{
+		// wait for a String to be placed in messageQueue
+		while (messageQueue.size() == 0)
+		{
+			try
+			{
+				wait();
+			}
+			catch (InterruptedException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+		String messageString = messageQueue.poll();
+		return Message.parseMessage(messageString);
+	}
+
 	private void readConfigFiles()
 	{
 		readCommonConfig();
@@ -72,6 +105,15 @@ public class Peer
 		else
 		{
 			Arrays.fill(bitfield, false);
+		}
+
+		try
+		{
+			serverSocket = new ServerSocket(portNumber);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -187,10 +229,10 @@ public class Peer
 		while (iter.hasNext())
 		{
 			NeighborPeer neighborPeer = iter.next();
-			if (peersBeforeThis.contains(neighborPeer.peerID))
+			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
 			{
 				neighborPeer.establishConnection();
-				sendMessage(new Handshake(PEER_ID, neighborPeer.peerID));
+				sendMessage(new Handshake(PEER_ID, neighborPeer.PEER_ID));
 			}
 		}
 	}
@@ -205,7 +247,7 @@ public class Peer
 		
 	}
 	
-	public void receiveMessage(Message m)
+	private void executeMessage(Message m)
 	{
 		m.handle();
 	}
