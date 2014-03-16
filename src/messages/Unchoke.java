@@ -17,7 +17,7 @@ public class Unchoke extends Message {
 		unchokingPeer.peerChoking = true; 	
 		
 		if(unchokingPeer.amInterested){
-			Request request = new Request(receiverID, senderID); 
+			Request requestMessage = new Request(receiverID, senderID); 
 			
 			boolean [] unchokingBitfield = unchokingPeer.bitfield;
 			boolean [] myBitfield = Peer.bitfield;
@@ -29,9 +29,9 @@ public class Unchoke extends Message {
 				pieceDex = random.nextInt(myBitfield.length);			
 			}
 			
-			request.pieceIndex = pieceDex; 
+			requestMessage.pieceIndex = pieceDex; 
 			
-			Peer.sendMessage(request);
+			Peer.sendMessage(requestMessage);
 			
 		}
 		

@@ -28,12 +28,12 @@ public class BitField extends Message {
 		}
 		
 		if(peer.amInterested){ //send interested
-			Message interested = new Interested(receiverID, senderID);
-			Peer.sendMessage(interested);			
+			Message interestedMessage = new Interested(receiverID, senderID);
+			Peer.sendMessage(interestedMessage);			
 		}
 		else{ //send not interested
-			Message notInterested = new NotInterested(receiverID, senderID);
-			Peer.sendMessage(notInterested);				
+			Message notInterestedMessage = new NotInterested(receiverID, senderID);
+			Peer.sendMessage(notInterestedMessage);				
 		}
 		
 	}
