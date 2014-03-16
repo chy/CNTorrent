@@ -83,7 +83,7 @@ public class Peer
 		}
 
 		String messageString = messageQueue.poll();
-		return Message.parseMessage(messageString);
+		return Message.decodeMessage(messageString);
 	}
 
 	private void readConfigFiles()
@@ -245,7 +245,8 @@ public class Peer
 	public static void sendMessage(Message m)
 	{
 		NeighborPeer neighborPeer = peers.get(m.receiverID);
-		// TODO finish this
+		String messageString = m.encodeMessage();
+		neighborPeer.out.println(messageString);
 	}
 	
 	private void executeMessage(Message m)

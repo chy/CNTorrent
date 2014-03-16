@@ -12,10 +12,15 @@ public abstract class Message
 		this.receiverID = receiverID; 
 	}
 
-	public static Message parseMessage(String messageString)
+	public static Message decodeMessage(String messageString)
 	{
 		// TODO return a Message object based on the header info of messageString
-		// use MessageType.getMessageType()
+		return null;
+	}
+
+	public String encodeMessage()
+	{
+		// TODO return a String from this Message object that follows the BitTorrent protocol
 		return null;
 	}
 
