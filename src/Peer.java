@@ -244,7 +244,11 @@ public class Peer
 		 * updates the choked status of the appropriate neighborPeer
 		 * sends an unchoke message to the appropriate peer
 		 */
-
+		NeighborPeer toUnchoke = peers.get(peerID);
+		toUnchoke.amChoking = false; 
+		
+		Message unchoke = new Unchoke(); 
+		sendMessage(unchoke, peerID);
 	}
 
 	public void log(String s)
