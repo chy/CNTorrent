@@ -1,5 +1,8 @@
 package messages;
 
+import peers.NeighborPeer;
+import peers.Peer;
+
 public class Choke extends Message{
 	
 	public Choke(int senderID, int receiverID){
@@ -14,6 +17,8 @@ public class Choke extends Message{
 		 * 	you are now choked by this peer
 		 * 
 		 */
+		NeighborPeer chokingPeer = Peer.peers.get(this.senderID); 
+		chokingPeer.peerChoking = true; 
 		
 	}
 
