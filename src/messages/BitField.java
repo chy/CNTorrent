@@ -12,6 +12,8 @@ public class BitField extends Message {
 		// If  (B ^ ~ A) != 0, send interested to host B. Else, send not interested.
 		// update interested, as well
 		NeighborPeer peer = Peer.peers.get(this.senderID); 
+		peer.establishConnection(); // connect to peer
+
 		boolean [] unchokingBitfield = peer.bitfield;
 		boolean [] myBitfield = Peer.bitfield;
 		
