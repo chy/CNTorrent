@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
-import messages.Message;
+import messages.*;
 
 public class Peer
 {
@@ -21,7 +21,7 @@ public class Peer
 	boolean isDone;
 	boolean [] bitfield; //tracks which pieces of the file have been downloaded
 	int numUnfinishedPeers; //leave the torrent when this is 0
-	HashMap<Integer, NeighborPeer> peers; //Contains 
+	HashMap<Integer, NeighborPeer> peers; //tracks pertinant information for neighbor peers of the current peer
 	int [] preferredPeers; //contains the peer ids of preferred peers
 	String hostname;
 	int portNumber;
@@ -189,7 +189,7 @@ public class Peer
 		// Close all connections, exit
 	}
 
-	public void sendMessage(Message m)
+	public void sendMessage(Message m, int peerID)
 	{
 		
 	}
@@ -225,15 +225,24 @@ public class Peer
 	public void choke(int peerID)
 	{
 		/*
-		 * Chokes the specified PeerID
+		 * Chokes the specified PeerID: 
+		 * Updates choked status of the appropriate neighborPeer
+		 * sends a choked message to the appropriate peer
 		 */
-
+		NeighborPeer toChoke = peers.get(peerID);
+		toChoke.amChoking = true; 
+		
+		Message choke = new Choke(); 
+		sendMessage(choke, peerID);
+		
 	}
 
 	public void unchoke(int peerID)
 	{
 		/*
 		 * Unchokes the specified PeerID
+		 * updates the choked status of the appropriate neighborPeer
+		 * sends an unchoke message to the appropriate peer
 		 */
 
 	}
