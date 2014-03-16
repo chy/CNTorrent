@@ -6,7 +6,7 @@ public class BitField extends Message {
 	}
 	@Override
 	public void handle() {
-		// TODO Auto-generated method stub
+		// If  (B ^ ~ A) != 0, send interested to host B. Else, send not interested.
 		
 	}
 	

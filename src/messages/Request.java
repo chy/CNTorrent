@@ -9,7 +9,7 @@ public class Request extends Message {
 	}
 	@Override
 	public void handle() {
-		// TODO Auto-generated method stub
+		// If sending host is unchoked, send the requested data
 		
 	}
 

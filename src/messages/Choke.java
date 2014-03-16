@@ -1,7 +1,6 @@
 package messages;
 
-import peers.NeighborPeer;
-import peers.Peer;
+import peers.*;
 
 public class Choke extends Message{
 	
