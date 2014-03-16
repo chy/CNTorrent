@@ -30,7 +30,7 @@ public class Peer
 	private int numPieces;
 	private boolean isDone; // when THIS peer is done downloading the file
 	public static boolean[] bitfield; // tracks which pieces of the file have been downloaded
-	private int numUnfinishedPeers; // leave the torrent when this is 0
+	public int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
 	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
 	private int[] preferredPeers; // contains the peer ids of preferred peers
@@ -83,7 +83,7 @@ public class Peer
 		}
 
 		String messageString = messageQueue.poll();
-		return Message.parseMessage(messageString);
+		return Message.decodeMessage(messageString);
 	}
 
 	private void readConfigFiles()
@@ -244,7 +244,9 @@ public class Peer
 
 	public static void sendMessage(Message m)
 	{
-		
+		NeighborPeer neighborPeer = peers.get(m.receiverID);
+		String messageString = m.encodeMessage();
+		neighborPeer.out.println(messageString);
 	}
 	
 	private void executeMessage(Message m)
