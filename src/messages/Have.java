@@ -55,27 +55,10 @@ public class Have extends Message{
 		
 		
 		
-		//other code
-		
-		
-		if(!peer.amChoking && myBitfield[pieceIndex]){ 
-			//if we're not choking them and have the requested piece, send it
-			Piece pieceMessage = new Piece(receiverID, senderID);
-			pieceMessage.pieceIndex = this.pieceIndex; 
-			Peer.sendMessage(pieceMessage);
-		}
-		
-		
-		
-		
-		
-		
-		
-		//update variables accordingly
 		
 		
 		
 				
 	}
-
 }
+
