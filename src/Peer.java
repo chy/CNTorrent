@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Scanner;
 
 import messages.Choke;
+import messages.Handshake;
 import messages.Message;
 import messages.Unchoke;
 
@@ -188,6 +189,7 @@ public class Peer
 			if (peersBeforeThis.contains(neighborPeer.peerID))
 			{
 				neighborPeer.establishConnection();
+				sendMessage(new Handshake(), neighborPeer.peerID);
 			}
 		}
 	}
