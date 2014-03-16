@@ -8,17 +8,17 @@ import java.util.Arrays;
 public class NeighborPeer
 {
 
-	int peerID;
-	boolean isDone;
-	boolean[] bitfield;
-	boolean amChoking; // am I choking this peer?
-	boolean amInterested; // am I interested in something this peer has?
-	boolean peerChoking; // is this peer choking me?
-	boolean peerInterested; // is this peer interested in something I have?
-	double datarate;
+	final int peerID;
+	public boolean isDone;
+	public boolean[] bitfield;
+	public boolean amChoking; // am I choking this peer?
+	public boolean amInterested; // am I interested in something this peer has?
+	public boolean peerChoking; // is this peer choking me?
+	public boolean peerInterested; // is this peer interested in something I have?
+	public double datarate;
 	final String hostname;
 	final int portNumber;
-	Socket socket; // socket for downloading from peers
+	public Socket socket; // socket for downloading from peers
 
 	public NeighborPeer(int peerID, String hostname, int portNumber, boolean isDone, int numPieces)
 	{
