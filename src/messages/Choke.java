@@ -1,11 +1,19 @@
 package messages;
 
 public class Choke extends Message{
-
+	
+	public Choke(int senderID){
+		super(senderID);
+	}
+	
 	@Override
 	public void handle() 
 	{
-		// TODO Auto-generated method stub
+		/*
+		 * Update variables: 
+		 * 	you are now choked by this peer
+		 * 
+		 */
 		
 	}
 
