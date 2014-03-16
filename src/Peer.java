@@ -3,9 +3,13 @@ import java.io.FileNotFoundException;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Scanner;
 
-import messages.*;
+import messages.Choke;
+import messages.Message;
+import messages.Unchoke;
 
 public class Peer
 {
@@ -13,15 +17,16 @@ public class Peer
 	int nPref; //number of preferred peers
 	int updatePrefInterval; //update preferred peers every updatePrefInterval seconds
 	int opUnchokeInterval;
-	int peerID; 
-	String fileName; 
+	public final int peerID; 
+	private String fileName; 
 	int fileSize;
 	int pieceSize;
 	int numPieces;
 	boolean isDone;
-	boolean [] bitfield; //tracks which pieces of the file have been downloaded
+	public boolean [] bitfield; //tracks which pieces of the file have been downloaded
 	int numUnfinishedPeers; //leave the torrent when this is 0
-	HashMap<Integer, NeighborPeer> peers; //tracks pertinant information for neighbor peers of the current peer
+	public HashMap<Integer, NeighborPeer> peers; //tracks pertinant information for neighbor peers of the current peer
+	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
 	int [] preferredPeers; //contains the peer ids of preferred peers
 	int optimisticallyUnchokedPeer; //the peer id of the current optimistically-unchoked peer
 	String hostname;
@@ -142,6 +147,7 @@ public class Peer
 		int ID;
 		while ((ID = scan.nextInt()) != peerID)
 		{
+			peersBeforeThis.add(ID);
 			String neighborHostname = scan.next();
 			int neighborPortNumber = scan.nextInt();
 			boolean neighborIsDone = (scan.nextInt() == 1);
@@ -175,14 +181,15 @@ public class Peer
 	 */
 	public void joinTorrent()
 	{
-		/*
 		Iterator<NeighborPeer> iter = peers.values().iterator();
 		while (iter.hasNext())
 		{
 			NeighborPeer neighborPeer = iter.next();
-			
+			if (peersBeforeThis.contains(neighborPeer.peerID))
+			{
+				neighborPeer.establishConnection();
+			}
 		}
-		*/
 	}
 
 	public void leaveTorrent()
