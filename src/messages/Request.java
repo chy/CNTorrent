@@ -19,8 +19,8 @@ public class Request extends Message {
 		
 		if(!peer.amChoking && myBitfield[pieceIndex]){ 
 			//if we're not choking them and have the requested piece, send it
-			Piece pieceMessage = new Piece(receiverID, senderID);
-			pieceMessage.pieceIndex = this.pieceIndex; 
+			Piece pieceMessage = new Piece(receiverID, senderID, pieceIndex);
+			
 			Peer.sendMessage(pieceMessage);
 		}
 		
