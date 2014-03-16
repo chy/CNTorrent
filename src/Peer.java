@@ -23,6 +23,7 @@ public class Peer
 	int numUnfinishedPeers; //leave the torrent when this is 0
 	HashMap<Integer, NeighborPeer> peers; //tracks pertinant information for neighbor peers of the current peer
 	int [] preferredPeers; //contains the peer ids of preferred peers
+	int optimisticallyUnchokedPeer; //the peer id of the current optimistically-unchoked peer
 	String hostname;
 	int portNumber;
 	ServerSocket serverSocket; // socket for uploading to peers
@@ -201,27 +202,24 @@ public class Peer
 	public void updatePreferred()
 	{
 		/*
-		 * If the peer hasn't downloaded the whole file: Calculate the download
-		 * rate for each interested peer during the previous download interval
-		 * (p seconds, unchokeInterval seconds). Unchoke the top nPref senders;
-		 * choke anyone else who was unchoked before (except the optimistically
-		 * unchoked peer). If the peer has downloaded the whole file: choose
-		 * preferred peers randomly from the interested peers. Unchoke them.
-		 * choke everyone else except the optimistically unchoked peer.
+		 * If the peer hasn't downloaded the whole file: 
+		 * 		Calculate the download rate for each interested peer during the previous download interval (p seconds, unchokeInterval seconds). 
+		 * 		Unchoke the top nPref senders;
+		 * 		choke anyone else who was unchoked before 
+		 * 			(except the optimistically unchoked peer). 
+		 * If the peer has downloaded the whole file:
+		 * 		 choose preferred peers randomly from the interested peers.
+		 * 		 Unchoke them.
+		 * 		 choke everyone else except the optimistically unchoked peer.
 		 */
+		
+		//Case 1
+		
+		
+		//Case 2
 
 	}
-
-	public void optimisticUnchoke()
-	{
-		/*
-		 * Select a random peer from chocked peers interested in your data;
-		 * unchoke them. (send them an unchoke message, mark them as unchoked).
-		 * Choke the peer that was previously optimistically unchoked.
-		 */
-
-	}
-
+	
 	public void choke(int peerID)
 	{
 		/*
@@ -250,9 +248,21 @@ public class Peer
 		Message unchoke = new Unchoke(); 
 		sendMessage(unchoke, peerID);
 	}
+	
+	public void optimisticUnchoke()
+	{
+		/*
+		 * Select a random peer from chocked peers interested in your data;
+		 * unchoke them. (send them an unchoke message, mark them as unchoked).
+		 * Choke the peer that was previously optimistically unchoked.
+		 */
+		
+	}
+
+	
 
 	public void log(String s)
-	{
+	{ 
 
 	}
 
