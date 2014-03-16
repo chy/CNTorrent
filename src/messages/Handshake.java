@@ -1,5 +1,8 @@
 package messages;
 
+import peers.NeighborPeer;
+import peers.Peer;
+
 public class Handshake extends Message
 {
 
@@ -11,8 +14,11 @@ public class Handshake extends Message
 	@Override
 	public void handle()
 	{
-		// TODO Auto-generated method stub
-		
+		NeighborPeer neighborPeer = Peer.peers.get(senderID);
+		if (!neighborPeer.amConnected)
+			throw new RuntimeException("Received a handshake message from a peer that we are not connected to");
+
+		Peer.sendMessage(new BitField(receiverID, senderID));
 	}
 
 }

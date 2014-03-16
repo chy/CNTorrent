@@ -12,6 +12,7 @@ public class NeighborPeer
 	final int PEER_ID;
 	public boolean isDone;
 	public boolean[] bitfield;
+	public boolean amConnected = false; // am I connected to this peer?
 	public boolean amChoking; // am I choking this peer?
 	public boolean amInterested; // am I interested in something this peer has?
 	public boolean peerChoking; // is this peer choking me?
@@ -55,6 +56,7 @@ public class NeighborPeer
 		{
 			throw new RuntimeException(e);
 		}
+		amConnected = true;
 	}
 
 }
