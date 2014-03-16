@@ -237,7 +237,7 @@ public class Peer
 		NeighborPeer toChoke = peers.get(peerID);
 		toChoke.amChoking = true; 
 		
-		Message choke = new Choke(); 
+		Message choke = new Choke(this.peerID); 
 		sendMessage(choke, peerID);
 		
 	}
@@ -252,7 +252,7 @@ public class Peer
 		NeighborPeer toUnchoke = peers.get(peerID);
 		toUnchoke.amChoking = false; 
 		
-		Message unchoke = new Unchoke(); 
+		Message unchoke = new Unchoke(this.peerID); 
 		sendMessage(unchoke, peerID);
 	}
 	
