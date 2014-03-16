@@ -193,6 +193,10 @@ public class Peer
 	{
 		
 	}
+	
+	public void receiveMessage(Message m){
+		m.handle();
+	}
 
 	public void updatePreferred()
 	{
