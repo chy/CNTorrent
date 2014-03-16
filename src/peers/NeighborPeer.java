@@ -1,6 +1,8 @@
 package peers;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -9,6 +11,7 @@ import java.util.Arrays;
 public class NeighborPeer
 {
 
+	private Peer peer; // a reference to this process's peer
 	final int PEER_ID;
 	public boolean isDone;
 	public boolean[] bitfield;
@@ -21,10 +24,52 @@ public class NeighborPeer
 	final String hostname;
 	final int portNumber;
 	public Socket socket; // socket for downloading from peers
-	public PrintWriter out;
+	public PrintWriter socketOutputStream;
+	private BufferedReader socketInputStream;
 
-	public NeighborPeer(int peerID, String hostname, int portNumber, boolean isDone, int numPieces)
+	private class SocketReader implements Runnable
 	{
+
+		private BufferedReader inputStream;
+
+		SocketReader(BufferedReader inputStream)
+		{
+			this.inputStream = inputStream;
+		}
+
+		@Override
+		public void run()
+		{
+			String inputLine;
+			while (!peer.allPeersDone())
+			{
+				try
+				{
+					inputLine = inputStream.readLine();
+				}
+				catch (IOException e)
+				{
+					throw new RuntimeException(e);
+				}
+				peer.addToMessageQueue(inputLine);
+			}
+
+			try
+			{
+				inputStream.close();
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	public NeighborPeer(Peer peer, int peerID, String hostname, int portNumber, boolean isDone, int numPieces)
+	{
+		this.peer = peer;
 		this.PEER_ID = peerID;
 		this.hostname = hostname;
 		this.portNumber = portNumber;
@@ -46,7 +91,8 @@ public class NeighborPeer
 		try
 		{
 			socket = new Socket(hostname, portNumber);
-			out = new PrintWriter(socket.getOutputStream(), true);
+			socketOutputStream = new PrintWriter(socket.getOutputStream(), true);
+			socketInputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		}
 		catch (UnknownHostException e)
 		{
@@ -56,7 +102,12 @@ public class NeighborPeer
 		{
 			throw new RuntimeException(e);
 		}
+
 		amConnected = true;
+
+		SocketReader socketReader = new SocketReader(socketInputStream);
+		Thread socketReaderThread = new Thread(socketReader);
+		socketReaderThread.start();
 	}
 
 }

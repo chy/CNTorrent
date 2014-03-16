@@ -38,8 +38,34 @@ public class Peer
 	private String hostname;
 	private int portNumber;
 	public static ServerSocket serverSocket; // socket for uploading to peers
-	volatile Queue<String> messageQueue = new LinkedList<String>();
-	
+	private volatile boolean allPeersDone = false;
+	private volatile Queue<String> messageQueue = new LinkedList<String>();
+
+	public synchronized boolean allPeersDone()
+	{
+		return allPeersDone;
+	}
+
+	private synchronized void setAllPeersDone(boolean allPeersDone)
+	{
+		this.allPeersDone = allPeersDone;
+	}
+
+	private synchronized String pollFromMessageQueue()
+	{
+		return messageQueue.poll();
+	}
+
+	public synchronized void addToMessageQueue(String messageString)
+	{
+		messageQueue.add(messageString);
+	}
+
+	private synchronized boolean isMessageQueueEmpty()
+	{
+		return messageQueue.size() == 0;
+	}
+
 	public Peer(int peerID)
 	{
 		this.PEER_ID = peerID; // this should be supplied as a command-line parameter when PeerProcess is started
@@ -63,6 +89,9 @@ public class Peer
 			executeMessage(m);
 		}
 
+		// notify all sockets that we are done
+		setAllPeersDone(true);
+
 		// when all peers have downloaded the file, leave the torrent
 		leaveTorrent();
 	}
@@ -70,7 +99,7 @@ public class Peer
 	private synchronized Message readFromBuffer()
 	{
 		// wait for a String to be placed in messageQueue
-		while (messageQueue.size() == 0)
+		while (isMessageQueueEmpty())
 		{
 			try
 			{
@@ -82,7 +111,7 @@ public class Peer
 			}
 		}
 
-		String messageString = messageQueue.poll();
+		String messageString = pollFromMessageQueue();
 		return Message.decodeMessage(messageString);
 	}
 
@@ -195,7 +224,7 @@ public class Peer
 			String neighborHostname = scan.next();
 			int neighborPortNumber = scan.nextInt();
 			boolean neighborIsDone = (scan.nextInt() == 1);
-			NeighborPeer neighborPeer = new NeighborPeer(ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
+			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
 			neighborPeer.establishConnection(); // establish connections with peers before this one
 		}
@@ -212,7 +241,7 @@ public class Peer
 			String neighborHostname = scan.next();
 			int neighborPortNumber = scan.nextInt();
 			boolean neighborIsDone = (scan.nextInt() == 1);
-			NeighborPeer neighborPeer = new NeighborPeer(ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
+			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
 		}
 
@@ -246,7 +275,7 @@ public class Peer
 	{
 		NeighborPeer neighborPeer = peers.get(m.receiverID);
 		String messageString = m.encodeMessage();
-		neighborPeer.out.println(messageString);
+		neighborPeer.socketOutputStream.println(messageString);
 	}
 	
 	private void executeMessage(Message m)
