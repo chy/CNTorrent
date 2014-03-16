@@ -200,7 +200,7 @@ public class Peer
 		// Close all connections, exit
 	}
 
-	public void sendMessage(Message m)
+	public static void sendMessage(Message m)
 	{
 		
 	}
