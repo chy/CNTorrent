@@ -6,8 +6,9 @@ public class Have extends Message{
 
 	public int pieceIndex; //index of the requested piece
 	
-	public Have(int senderID, int receiverID){
+	public Have(int senderID, int receiverID, int pieceIndex){
 		super(senderID, receiverID);
+		this.pieceIndex = pieceIndex; 
 	}
 	@Override
 	public void handle() 

@@ -7,8 +7,9 @@ public class Request extends Message {
 	
 	public int pieceIndex; //index of the requested piece 
 	
-	public Request(int senderID, int receiverID){
+	public Request(int senderID, int receiverID, int pieceIndex){
 		super(senderID, receiverID);
+		this.pieceIndex = pieceIndex;
 	}
 	
 	@Override
