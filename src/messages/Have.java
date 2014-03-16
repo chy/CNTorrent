@@ -2,8 +2,8 @@ package messages;
 
 public class Have extends Message{
 
-	public Have(int senderID){
-		super(senderID);
+	public Have(int senderID, int receiverID){
+		super(senderID, receiverID);
 	}
 	@Override
 	public void handle() {

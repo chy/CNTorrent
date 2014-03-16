@@ -2,8 +2,8 @@ package messages;
 
 public class Handshake extends Message {
 
-	public Handshake(int senderID){
-		super(senderID);
+	public Handshake(int senderID, int receiverID){
+		super(senderID, receiverID);
 	}
 	
 	@Override

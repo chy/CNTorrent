@@ -1,8 +1,8 @@
 package messages;
 
 public class BitField extends Message {
-	public BitField(int senderID){
-		super(senderID);
+	public BitField(int senderID, int receiverID){
+		super(senderID, receiverID);
 	}
 	@Override
 	public void handle() {

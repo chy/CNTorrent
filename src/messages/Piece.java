@@ -2,8 +2,8 @@ package messages;
 
 public class Piece extends Message{
 
-	public Piece (int senderID){
-		super(senderID);
+	public Piece (int senderID, int receiverID){
+		super(senderID, receiverID);
 	}
 	@Override
 	public void handle() {

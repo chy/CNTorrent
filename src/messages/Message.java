@@ -2,10 +2,12 @@ package messages;
 
 public abstract class Message
 {
-	public int senderID; 
+	public final int senderID; 
+	public final int receiverID; 
 	
-	public Message(int senderID){
-		this.senderID = senderID;		
+	public Message(int senderID, int receiverID){
+		this.senderID = senderID;	
+		this.receiverID = receiverID; 
 	}
 	
 	public static void parseMessage(String[] data)

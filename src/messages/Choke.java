@@ -2,8 +2,8 @@ package messages;
 
 public class Choke extends Message{
 	
-	public Choke(int senderID){
-		super(senderID);
+	public Choke(int senderID, int receiverID){
+		super(senderID, receiverID);
 	}
 	
 	@Override
