@@ -43,6 +43,7 @@ public class Have extends Message{
 				if(i == my_bitfield.length - 1)
 				{
 					Peer.numUnfinishedPeers--;
+					peer.isDone = true; 
 				}
 				continue;
 			}
