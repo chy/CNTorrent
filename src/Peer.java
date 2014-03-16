@@ -189,7 +189,7 @@ public class Peer
 			if (peersBeforeThis.contains(neighborPeer.peerID))
 			{
 				neighborPeer.establishConnection();
-				sendMessage(new Handshake(), neighborPeer.peerID);
+				sendMessage(new Handshake(peerID, neighborPeer.peerID));
 			}
 		}
 	}
@@ -199,12 +199,13 @@ public class Peer
 		// Close all connections, exit
 	}
 
-	public void sendMessage(Message m, int peerID)
+	public void sendMessage(Message m)
 	{
 		
 	}
 	
-	public void receiveMessage(Message m){
+	public void receiveMessage(Message m)
+	{
 		m.handle();
 	}
 
@@ -229,33 +230,32 @@ public class Peer
 
 	}
 	
-	public void choke(int peerID)
+	public void choke(int receiverID)
 	{
 		/*
 		 * Chokes the specified PeerID: 
 		 * Updates choked status of the appropriate neighborPeer
 		 * sends a choked message to the appropriate peer
 		 */
-		NeighborPeer toChoke = peers.get(peerID);
+		NeighborPeer toChoke = peers.get(receiverID);
 		toChoke.amChoking = true; 
 		
-		Message choke = new Choke(this.peerID); 
-		sendMessage(choke, peerID);
-		
+		Message choke = new Choke(peerID, receiverID); 
+		sendMessage(choke);
 	}
 
-	public void unchoke(int peerID)
+	public void unchoke(int receiverID)
 	{
 		/*
 		 * Unchokes the specified PeerID
 		 * updates the choked status of the appropriate neighborPeer
 		 * sends an unchoke message to the appropriate peer
 		 */
-		NeighborPeer toUnchoke = peers.get(peerID);
+		NeighborPeer toUnchoke = peers.get(receiverID);
 		toUnchoke.amChoking = false; 
 		
-		Message unchoke = new Unchoke(this.peerID); 
-		sendMessage(unchoke, peerID);
+		Message unchoke = new Unchoke(peerID, receiverID); 
+		sendMessage(unchoke);
 	}
 	
 	public void optimisticUnchoke()
@@ -267,8 +267,6 @@ public class Peer
 		 */
 		
 	}
-
-	
 
 	public void log(String s)
 	{ 
