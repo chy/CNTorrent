@@ -1,4 +1,6 @@
-public class PeerProcess
+import peers.Peer;
+
+class PeerProcess
 {
 
 	public static void main(String[] args)

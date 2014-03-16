@@ -1,9 +1,11 @@
+package peers;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-class NeighborPeer
+public class NeighborPeer
 {
 
 	int peerID;
