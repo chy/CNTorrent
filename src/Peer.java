@@ -15,29 +15,28 @@ import messages.Unchoke;
 public class Peer
 {
 
-	int nPref; //number of preferred peers
-	int updatePrefInterval; //update preferred peers every updatePrefInterval seconds
-	int opUnchokeInterval;
-	public final int peerID; 
-	private String fileName; 
-	int fileSize;
-	int pieceSize;
-	int numPieces;
-	boolean isDone;
-	public boolean [] bitfield; //tracks which pieces of the file have been downloaded
-	int numUnfinishedPeers; //leave the torrent when this is 0
-	public HashMap<Integer, NeighborPeer> peers; //tracks pertinant information for neighbor peers of the current peer
+	private int nPref; // number of preferred peers
+	private int updatePrefInterval; // update preferred peers every updatePrefInterval seconds
+	private int opUnchokeInterval;
+	public final int PEER_ID;
+	private String fileName;
+	private int fileSize;
+	private int pieceSize;
+	private int numPieces;
+	private boolean isDone;
+	public static boolean[] bitfield; // tracks which pieces of the file have been downloaded
+	private int numUnfinishedPeers; // leave the torrent when this is 0
+	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
 	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
-	int [] preferredPeers; //contains the peer ids of preferred peers
-	int optimisticallyUnchokedPeer; //the peer id of the current optimistically-unchoked peer
-	String hostname;
-	int portNumber;
-	ServerSocket serverSocket; // socket for uploading to peers
+	private int[] preferredPeers; // contains the peer ids of preferred peers
+	private int optimisticallyUnchokedPeer; // the peer id of the current optimistically-unchoked peer
+	private String hostname;
+	private int portNumber;
+	private ServerSocket serverSocket; // socket for uploading to peers
 	
 	public Peer(int peerID)
 	{
-		this.peerID = peerID; //this should be supplied as a command-line parameter when PeerProcess is started
-		peers = new HashMap<Integer, NeighborPeer>();
+		this.PEER_ID = peerID; // this should be supplied as a command-line parameter when PeerProcess is started
 	}
 	
 	/**
@@ -52,7 +51,7 @@ public class Peer
 		joinTorrent();
 	}
 	
-	public void readConfigFiles()
+	private void readConfigFiles()
 	{
 		readCommonConfig();
 
@@ -74,7 +73,7 @@ public class Peer
 		}
 	}
 	
-	public void readCommonConfig()
+	private void readCommonConfig()
 	{
 		/*
 		 * Example Common.cfg file:
@@ -122,7 +121,7 @@ public class Peer
 		scan.close();
 	}
 
-	public void readPeerInfoConfig()
+	private void readPeerInfoConfig()
 	{
 		/*
 		 * Example PeerInfo.cfg:
@@ -146,7 +145,7 @@ public class Peer
 
 		// iterate through peers that have already been started
 		int ID;
-		while ((ID = scan.nextInt()) != peerID)
+		while ((ID = scan.nextInt()) != PEER_ID)
 		{
 			peersBeforeThis.add(ID);
 			String neighborHostname = scan.next();
@@ -180,7 +179,7 @@ public class Peer
 	 * Open TCP connections and handshake with all previous peers in the peer
 	 * info config file
 	 */
-	public void joinTorrent()
+	private void joinTorrent()
 	{
 		Iterator<NeighborPeer> iter = peers.values().iterator();
 		while (iter.hasNext())
@@ -189,12 +188,12 @@ public class Peer
 			if (peersBeforeThis.contains(neighborPeer.peerID))
 			{
 				neighborPeer.establishConnection();
-				sendMessage(new Handshake(peerID, neighborPeer.peerID));
+				sendMessage(new Handshake(PEER_ID, neighborPeer.peerID));
 			}
 		}
 	}
 
-	public void leaveTorrent()
+	private void leaveTorrent()
 	{
 		// Close all connections, exit
 	}
@@ -240,7 +239,7 @@ public class Peer
 		NeighborPeer toChoke = peers.get(receiverID);
 		toChoke.amChoking = true; 
 		
-		Message choke = new Choke(peerID, receiverID); 
+		Message choke = new Choke(PEER_ID, receiverID); 
 		sendMessage(choke);
 	}
 
@@ -254,7 +253,7 @@ public class Peer
 		NeighborPeer toUnchoke = peers.get(receiverID);
 		toUnchoke.amChoking = false; 
 		
-		Message unchoke = new Unchoke(peerID, receiverID); 
+		Message unchoke = new Unchoke(PEER_ID, receiverID); 
 		sendMessage(unchoke);
 	}
 	
