@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
 
-import messages.BitField;
+import messages.Bitfield;
 import messages.Choke;
 import messages.Message;
 import messages.Unchoke;
@@ -277,7 +277,7 @@ public class Peer
 			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
 			{
 				neighborPeer.establishConnection();
-				sendMessage(new BitField(PEER_ID, neighborPeer.PEER_ID));
+				sendMessage(new Bitfield(PEER_ID, neighborPeer.PEER_ID));
 			}
 		}
 	}
