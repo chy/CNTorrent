@@ -5,38 +5,39 @@ import java.util.Random;
 import peers.NeighborPeer;
 import peers.Peer;
 
-public class Unchoke extends Message {
-	public Unchoke(int senderID, int receiverID){
+public class Unchoke extends Message
+{
+
+	public Unchoke(int senderID, int receiverID)
+	{
 		super(senderID, receiverID);
 	}
-	@Override
-	public void handle() {
-		// If interested in peer that unchoked you, send request for a random piece they have that you don't.
 
-		NeighborPeer unchokingPeer = Peer.peers.get(this.senderID); 
-		unchokingPeer.peerChoking = true; 	
-		
-		if(unchokingPeer.amInterested){
-			Request requestMessage = new Request(receiverID, senderID); 
-			
-			boolean [] unchokingBitfield = unchokingPeer.bitfield;
-			boolean [] myBitfield = Peer.bitfield;
-			
+	@Override
+	public void handle()
+	{
+		// If interested in peer that unchoked you, send request for a random piece they have that you don't
+
+		NeighborPeer unchokingPeer = Peer.peers.get(this.senderID);
+		unchokingPeer.peerChoking = true;
+
+		if (unchokingPeer.amInterested)
+		{
+			boolean[] unchokingBitfield = unchokingPeer.bitfield;
+			boolean[] myBitfield = Peer.bitfield;
+
 			Random random = new Random();
-			
+
 			int pieceDex = random.nextInt(myBitfield.length);
-			while(!(unchokingBitfield[pieceDex] && !myBitfield[pieceDex])){
-				pieceDex = random.nextInt(myBitfield.length);			
+			while (!(unchokingBitfield[pieceDex] && !myBitfield[pieceDex]))
+			{
+				pieceDex = random.nextInt(myBitfield.length);
 			}
-			
-			requestMessage.pieceIndex = pieceDex; 
-			
+
+			Request requestMessage = new Request(receiverID, senderID, pieceDex);
 			Peer.sendMessage(requestMessage);
-			
 		}
-		
+
 	}
-	
-	
 
 }
