@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,10 +11,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
 
-import messages.Bitfield;
+import messages.BitfieldMessage;
 import messages.Choke;
 import messages.Message;
 import messages.Unchoke;
+import util.Bitfield;
 
 public class Peer
 {
@@ -27,9 +27,10 @@ public class Peer
 	private String fileName;
 	private int fileSize;
 	private int pieceSize;
-	private int numPieces;
+	public static int numPieces;
 	private boolean isDone; // when THIS peer is done downloading the file
-	public static boolean[] bitfield; // tracks which pieces of the file have been downloaded
+	// bitfield MUST be a byte array because the largest piece index can be is 2^32, which is too much memory for a boolean array
+	public static Bitfield bitfield; // tracks which pieces of the file have been downloaded
 	public static int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
 	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
@@ -133,25 +134,18 @@ public class Peer
 
 	private void readConfigFiles()
 	{
+		// read common config file
 		readCommonConfig();
 
 		// initialization after reading common config file
 		int tempNumPieces = fileSize / pieceSize;
 		numPieces = (tempNumPieces * pieceSize == fileSize) ? tempNumPieces : (tempNumPieces + 1);
-		bitfield = new boolean[numPieces];
 
+		// read peer info config file
 		readPeerInfoConfig();
 
 		// initialization after reading peer info config file
-		if (isDone)
-		{
-			Arrays.fill(bitfield, true);
-		}
-		else
-		{
-			Arrays.fill(bitfield, false);
-		}
-
+		bitfield = new Bitfield(numPieces, isDone);
 		try
 		{
 			serverSocket = new ServerSocket(portNumber);
@@ -242,7 +236,6 @@ public class Peer
 			boolean neighborIsDone = (scan.nextInt() == 1);
 			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
-			neighborPeer.establishConnection(); // establish connections with peers before this one
 		}
 
 		// we have reached this peer in PeerInfo.cfg
@@ -277,7 +270,7 @@ public class Peer
 			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
 			{
 				neighborPeer.establishConnection();
-				sendMessage(new Bitfield(PEER_ID, neighborPeer.PEER_ID));
+				sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
 			}
 		}
 	}

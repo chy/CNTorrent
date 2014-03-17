@@ -42,7 +42,7 @@ public abstract class Message
 		case 2: return new Interested(senderID, receiverID);
 		case 3: return new NotInterested(senderID, receiverID);
 		case 4: return new Have(senderID, receiverID, pieceIndex);
-		case 5: return new Bitfield(senderID, receiverID);
+		case 5: return new BitfieldMessage(senderID, receiverID, payloadBytes);
 		case 6: return new Request(senderID, receiverID, pieceIndex);
 		case 7: return new Piece(senderID, receiverID, pieceIndex);
 		default: throw new RuntimeException("Cannot decode message with value " + messageType);

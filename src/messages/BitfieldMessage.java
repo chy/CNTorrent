@@ -2,13 +2,23 @@ package messages;
 
 import peers.NeighborPeer;
 import peers.Peer;
+import util.Bitfield;
 
-public class Bitfield extends Message
+public class BitfieldMessage extends Message
 {
 
-	public Bitfield(int senderID, int receiverID)
+	private Bitfield senderBitfield;
+
+	public BitfieldMessage(int senderID, int receiverID, byte[] bitfieldBytes)
 	{
 		super(senderID, receiverID);
+		senderBitfield = new Bitfield(bitfieldBytes);
+	}
+
+	public BitfieldMessage(int senderID, int receiverID, Bitfield senderBitfield)
+	{
+		super(senderID, receiverID);
+		this.senderBitfield = senderBitfield;
 	}
 
 	@Override
@@ -20,17 +30,16 @@ public class Bitfield extends Message
 		NeighborPeer neighborPeer = Peer.peers.get(this.senderID);
 		neighborPeer.establishConnection(); // connect to peer
 
-		boolean[] unchokingBitfield = neighborPeer.bitfield;
-		boolean[] myBitfield = Peer.bitfield;
+		Bitfield myBitfield = Peer.bitfield;
 
-		for (int i = 0; i < myBitfield.length; i++)
+		for (int i = 0; i < Peer.numPieces; i++)
 		{
-			if (unchokingBitfield[i] && !myBitfield[i])
+			if (senderBitfield.hasPiece(i) && !myBitfield.hasPiece(i))
 			{
-				// interested
+				// we are interested
 				neighborPeer.amInterested = true;
 			}
-			if (!unchokingBitfield[i] && myBitfield[i])
+			if (!senderBitfield.hasPiece(i) && myBitfield.hasPiece(i))
 			{
 				// peer is interested
 				neighborPeer.peerInterested = true;

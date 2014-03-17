@@ -9,11 +9,15 @@ import java.util.Scanner;
 
 import peers.NeighborPeer;
 import peers.Peer;
-//UNFINISHED, but compiles. 
-public class Piece extends Message{
+import util.Bitfield;
+
+// UNFINISHED, but compiles. 
+public class Piece extends Message
+{
+
 	private int pieceIndex; //id of the piece being sent
 	public byte [] piece; //byte array of the contents of the piece to be sent
-	
+
 	public Piece (int senderID, int receiverID, int pieceIndex){
 		super(senderID, receiverID);
 		this.pieceIndex = pieceIndex;
@@ -38,13 +42,13 @@ public class Piece extends Message{
 		writePieceToFile(piece);
 		
 		NeighborPeer sendingPeer = Peer.peers.get(this.senderID); 
-		boolean [] myBitfield = Peer.bitfield;
-		myBitfield[pieceIndex] = true; 
+		Bitfield myBitfield = Peer.bitfield;
+		myBitfield.setPiece(pieceIndex, true);
 		
 		for(NeighborPeer peer : Peer.peers.values()){ //for each peer
 			//check if you are interested in them
-			for(int i = 0; i < peer.bitfield.length; i++){
-				if(peer.bitfield[i] && !myBitfield[i]){
+			for(int i = 0; i < Peer.numPieces; i++){
+				if(peer.bitfield.hasPiece(i) && !myBitfield.hasPiece(i)){
 					peer.amInterested = true;
 					break; 
 				}
@@ -57,11 +61,11 @@ public class Piece extends Message{
 		if(!sendingPeer.peerChoking && sendingPeer.amInterested){
 			
 			Random random = new Random();
-			int pieceDex = random.nextInt(myBitfield.length);
-			while(!(sendingPeer.bitfield[pieceDex] && !myBitfield[pieceDex])){
-				pieceDex = random.nextInt(myBitfield.length);			
+			int pieceIndex = random.nextInt(Peer.numPieces);
+			while(!(sendingPeer.bitfield.hasPiece(pieceIndex) && !myBitfield.hasPiece(pieceIndex))){
+				pieceIndex = random.nextInt(Peer.numPieces);			
 			}
-			Peer.sendMessage(new Request(receiverID, senderID, pieceDex)); 
+			Peer.sendMessage(new Request(receiverID, senderID, pieceIndex)); 
 		}
 	}
 	

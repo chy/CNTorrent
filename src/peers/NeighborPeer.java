@@ -6,7 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+
+import util.Bitfield;
 
 public class NeighborPeer
 {
@@ -14,7 +15,7 @@ public class NeighborPeer
 	private Peer peer; // a reference to this process's peer
 	final int PEER_ID;
 	public boolean isDone;
-	public boolean[] bitfield;
+	public Bitfield bitfield;
 	public boolean amConnected = false; // am I connected to this peer?
 	public boolean amChoking; // am I choking this peer?
 	public boolean amInterested; // am I interested in something this peer has?
@@ -75,15 +76,7 @@ public class NeighborPeer
 		this.portNumber = portNumber;
 		this.isDone = isDone;
 
-		bitfield = new boolean[numPieces];
-		if (isDone)
-		{
-			Arrays.fill(bitfield, true);
-		}
-		else
-		{
-			Arrays.fill(bitfield, false);
-		}
+		bitfield = new Bitfield(numPieces, isDone);
 	}
 
 	public void establishConnection()

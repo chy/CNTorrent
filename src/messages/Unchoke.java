@@ -4,6 +4,7 @@ import java.util.Random;
 
 import peers.NeighborPeer;
 import peers.Peer;
+import util.Bitfield;
 
 public class Unchoke extends Message
 {
@@ -16,28 +17,28 @@ public class Unchoke extends Message
 	@Override
 	public void handle()
 	{
-		// If interested in peer that unchoked you, send request for a random piece they have that you don't
+		// If interested in peer that unchoked you, send request for a random
+		// piece they have that you don't
 
 		NeighborPeer unchokingPeer = Peer.peers.get(this.senderID);
 		unchokingPeer.peerChoking = true;
 
 		if (unchokingPeer.amInterested)
 		{
-			boolean[] unchokingBitfield = unchokingPeer.bitfield;
-			boolean[] myBitfield = Peer.bitfield;
+			Bitfield unchokingBitfield = unchokingPeer.bitfield;
+			Bitfield myBitfield = Peer.bitfield;
 
 			Random random = new Random();
 
-			int pieceDex = random.nextInt(myBitfield.length);
-			while (!(unchokingBitfield[pieceDex] && !myBitfield[pieceDex]))
+			int pieceIndex = random.nextInt(Peer.numPieces);
+			while (!(unchokingBitfield.hasPiece(pieceIndex) && !myBitfield.hasPiece(pieceIndex)))
 			{
-				pieceDex = random.nextInt(myBitfield.length);
+				pieceIndex = random.nextInt(Peer.numPieces);
 			}
 
-			Request requestMessage = new Request(receiverID, senderID, pieceDex);
+			Request requestMessage = new Request(receiverID, senderID, pieceIndex);
 			Peer.sendMessage(requestMessage);
 		}
-
 	}
 
 }
