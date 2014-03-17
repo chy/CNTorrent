@@ -39,7 +39,21 @@ public class Peer
 	private int portNumber;
 	public static ServerSocket serverSocket; // socket for uploading to peers
 	private volatile boolean allPeersDone = false;
-	private volatile Queue<String> messageQueue = new LinkedList<String>();
+	private volatile Queue<MessagePair> messageQueue = new LinkedList<MessagePair>();
+
+	private class MessagePair
+	{
+
+		final String messageString;
+		final int senderID;
+
+		MessagePair(String messageString, int senderID)
+		{
+			this.messageString = messageString;
+			this.senderID = senderID;
+		}
+
+	}
 
 	public synchronized boolean allPeersDone()
 	{
@@ -51,14 +65,14 @@ public class Peer
 		this.allPeersDone = allPeersDone;
 	}
 
-	private synchronized String pollFromMessageQueue()
+	private synchronized MessagePair pollFromMessageQueue()
 	{
 		return messageQueue.poll();
 	}
 
-	public synchronized void addToMessageQueue(String messageString)
+	public synchronized void addToMessageQueue(String messageString, int senderID)
 	{
-		messageQueue.add(messageString);
+		messageQueue.add(new MessagePair(messageString, senderID));
 	}
 
 	private synchronized boolean isMessageQueueEmpty()
@@ -85,7 +99,10 @@ public class Peer
 		// main loop
 		while (numUnfinishedPeers == 0)
 		{
-			Message m = readFromBuffer();
+			MessagePair messagePair = readFromBuffer();
+			String messageString = messagePair.messageString;
+			int senderID = messagePair.senderID;
+			Message m = Message.decodeMessage(messageString, senderID, PEER_ID);
 			executeMessage(m);
 		}
 
@@ -96,7 +113,7 @@ public class Peer
 		leaveTorrent();
 	}
 
-	private synchronized Message readFromBuffer()
+	private synchronized MessagePair readFromBuffer()
 	{
 		// wait for a String to be placed in messageQueue
 		while (isMessageQueueEmpty())
@@ -111,8 +128,7 @@ public class Peer
 			}
 		}
 
-		String messageString = pollFromMessageQueue();
-		return Message.decodeMessage(messageString);
+		return pollFromMessageQueue();
 	}
 
 	private void readConfigFiles()
@@ -168,7 +184,7 @@ public class Peer
 			throw new RuntimeException("Cannot find file: " + fileLocation, e);
 		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			String key = scan.next();
 			if (!key.equals("FileName"))

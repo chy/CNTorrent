@@ -7,7 +7,7 @@ class PeerProcess
 	{
 		if (args.length != 1)
 		{
-			System.err.println("Usage: java peerProcess <peer_ID>");
+			System.err.println("Usage: java PeerProcess <peer_ID>");
 			System.exit(1);
 		}
 

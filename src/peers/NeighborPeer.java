@@ -51,7 +51,7 @@ public class NeighborPeer
 				{
 					throw new RuntimeException(e);
 				}
-				peer.addToMessageQueue(inputLine);
+				peer.addToMessageQueue(inputLine, PEER_ID);
 			}
 
 			try
