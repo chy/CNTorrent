@@ -456,7 +456,7 @@ public class Peer
 				
 		switch(s){
 		case "TCP":
-			logFile.logger.info(time + "Peer" + PEER_ID + " makes a connection to Peer " + );
+			logFile.logger.info(time + "Peer" + PEER_ID + " makes a connection to Peer ");
 			break;
 		case "neighbor_change":
 			break;
