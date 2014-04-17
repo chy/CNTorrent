@@ -4,12 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import messages.BitfieldMessage;
 import messages.Choke;
@@ -35,14 +36,15 @@ public class Peer
 	
 	public static int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
-	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
+	private List<NeighborPeer> peersBeforeThis = new ArrayList<NeighborPeer>(); // peers before this one, for joinTorrent()
+	private List<NeighborPeer> peersAfterThis = new ArrayList<NeighborPeer>(); // peers after this one, for joinTorrent()
 	private int[] preferredPeers; // contains the peer ids of preferred peers
 	private int optimisticallyUnchokedPeer; // the peer id of the current optimistically-unchoked peer
 	private String hostname;
 	private int portNumber;
 	public static ServerSocket serverSocket; // socket for uploading to peers
-	private volatile boolean allPeersDone = false;
-	private volatile Queue<MessagePair> messageQueue = new LinkedList<MessagePair>();
+	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
+	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
 
 	private class MessagePair
 	{
@@ -60,27 +62,17 @@ public class Peer
 
 	public synchronized boolean allPeersDone()
 	{
-		return allPeersDone;
+		return allPeersDone.get();
 	}
 
 	private synchronized void setAllPeersDone(boolean allPeersDone)
 	{
-		this.allPeersDone = allPeersDone;
-	}
-
-	private synchronized MessagePair pollFromMessageQueue()
-	{
-		return messageQueue.poll();
+		this.allPeersDone.getAndSet(allPeersDone);
 	}
 
 	public synchronized void addToMessageQueue(String messageString, int senderID)
 	{
 		messageQueue.add(new MessagePair(messageString, senderID));
-	}
-
-	private synchronized boolean isMessageQueueEmpty()
-	{
-		return messageQueue.size() == 0;
 	}
 
 	public Peer(int peerID)
@@ -102,7 +94,15 @@ public class Peer
 		// main loop
 		while (numUnfinishedPeers != 0)
 		{
-			MessagePair messagePair = readFromBuffer();
+			MessagePair messagePair;
+			try
+			{
+				messagePair = messageQueue.take();
+			}
+			catch (InterruptedException e)
+			{
+				throw new RuntimeException(e);
+			}
 			String messageString = messagePair.messageString;
 			int senderID = messagePair.senderID;
 			Message m = Message.decodeMessage(messageString, senderID, PEER_ID);
@@ -114,24 +114,6 @@ public class Peer
 
 		// when all peers have downloaded the file, leave the torrent
 		leaveTorrent();
-	}
-
-	private synchronized MessagePair readFromBuffer()
-	{
-		// wait for a String to be placed in messageQueue
-		while (isMessageQueueEmpty())
-		{
-			try
-			{
-				wait();
-			}
-			catch (InterruptedException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-
-		return pollFromMessageQueue();
 	}
 
 	private void readConfigFiles()
@@ -232,12 +214,12 @@ public class Peer
 		int ID;
 		while ((ID = scan.nextInt()) != PEER_ID)
 		{
-			peersBeforeThis.add(ID);
 			String neighborHostname = scan.next();
 			int neighborPortNumber = scan.nextInt();
 			boolean neighborIsDone = (scan.nextInt() == 1);
 			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
+			peersBeforeThis.add(neighborPeer);
 		}
 
 		// we have reached this peer in PeerInfo.cfg
@@ -254,6 +236,7 @@ public class Peer
 			boolean neighborIsDone = (scan.nextInt() == 1);
 			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
+			peersAfterThis.add(neighborPeer);
 		}
 
 		scan.close();
@@ -265,15 +248,15 @@ public class Peer
 	 */
 	private void joinTorrent()
 	{
-		Iterator<NeighborPeer> iter = peers.values().iterator();
-		while (iter.hasNext())
+		for (NeighborPeer neighborPeer : peersBeforeThis)
 		{
-			NeighborPeer neighborPeer = iter.next();
-			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
-			{
-				neighborPeer.establishConnection();
-				sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
-			}
+			neighborPeer.establishConnection();
+			sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
+		}
+
+		for (NeighborPeer neighborPeer : peersAfterThis)
+		{
+			neighborPeer.waitForConnection();
 		}
 	}
 
@@ -285,8 +268,8 @@ public class Peer
 	public static void sendMessage(Message m)
 	{
 		NeighborPeer neighborPeer = peers.get(m.receiverID);
-		String messageString = m.encodeMessage();
-		neighborPeer.socketOutputStream.println(messageString);
+		String encodedMessage = m.encodeMessage();
+		neighborPeer.sendMessageToPeer(encodedMessage);
 	}
 	
 	private void executeMessage(Message m)
