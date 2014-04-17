@@ -346,11 +346,21 @@ public class Peer
 			}
 			for(int i = 0; i < nPref; i++){
 				NeighborPeer p = queue.poll(); 
-				preferredPeers[i] = p.PEER_ID; 
-				unchoke(p.PEER_ID); 
+				if(p!= null){
+					preferredPeers[i] = p.PEER_ID; 
+					unchoke(p.PEER_ID);
+				}
+				else{
+					System.err.println("Error! peer.prefpeers trying to add an unconnected-to peer to preferred peers"); 
+				}
 			}
 			while(queue.peek() != null){
-				choke(queue.poll().PEER_ID); 
+				NeighborPeer p = queue.poll();
+				if(p != null){
+					choke(queue.poll().PEER_ID); 
+				}else{
+					System.err.println("Error! Peer.prefpeers trying to choke an unconnectedto peer"); 			
+				}
 			}
 		}
 		
