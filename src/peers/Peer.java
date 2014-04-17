@@ -21,6 +21,7 @@ import messages.Choke;
 import messages.Message;
 import messages.Unchoke;
 import util.Bitfield;
+import messages.LogMe;
 
 public class Peer
 {
@@ -49,6 +50,8 @@ public class Peer
 	public static ServerSocket serverSocket; // socket for uploading to peers
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
+	private LogMe logFile; // this will be the object that handles Log
+	
 
 	private long lastPreferredUpdateTime; // in milliseconds
 	private long lastOpUnchokeUpdateTime; // in milliseconds
@@ -85,6 +88,7 @@ public class Peer
 	public Peer(int peerID)
 	{
 		this.PEER_ID = peerID; // this should be supplied as a command-line parameter when PeerProcess is started
+		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
 	}
 	
 	/**
@@ -291,17 +295,10 @@ public class Peer
 
 	private void leaveTorrent() throws IOException //not sure of this code... please look over
 	{
-		Iterator<NeighborPeer> iter = peers.values().iterator();
-		while (iter.hasNext())
-		{
-			NeighborPeer neighborPeer = iter.next();
-			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
-			{
-				neighborPeer.socket.close();
-				Peer.serverSocket.close();
-				//sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
-			}
-		}
+		
+		Peer.serverSocket.close();
+		
+		//sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
 		
 		// Close all connections, exit
 	}
@@ -440,7 +437,28 @@ public class Peer
 	
 	public void log(String s)
 	{ 
-		System.out.println(" ");
+		switch(s){
+		case "TCP":
+			break;
+		case "neighbor_change":
+			break;
+		case "opt_unchoke_neighbor_change":
+			break;
+		case "unchoke":
+			break;
+		case "choke":
+			break;
+		case "receive_have":
+			break;
+		case "receive_interested":
+			break;
+		case "receive_noInterest":
+			break;
+		case "download_piece":
+			break;
+		case "download_complete":
+			break;
+		}
 
 	}
 
