@@ -47,7 +47,7 @@ public class Peer
 	private int portNumber;
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
-	private LogMe logFile; // this will be the object that handles Log
+	private LogMe logFile = new LogMe(); // this will be the object that handles Log
 	
 
 	private long lastPreferredUpdateTime; // in milliseconds
@@ -388,6 +388,13 @@ public class Peer
 		 * sends a choked message to the appropriate peer
 		 */
 		NeighborPeer toChoke = peers.get(receiverID);
+
+		if (!toChoke.amConnected)
+		{
+			// we are not yet connected to this peer
+			return;
+		}
+
 		toChoke.amChoking = true; 
 		
 		Message choke = new Choke(PEER_ID, receiverID); 
