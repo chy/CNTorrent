@@ -10,7 +10,7 @@ import java.net.UnknownHostException;
 
 import util.Bitfield;
 
-public class NeighborPeer
+public class NeighborPeer implements Comparable
 {
 
 	private Peer peer; // a reference to this process's peer
@@ -138,6 +138,19 @@ public class NeighborPeer
 	public void sendMessageToPeer(String encodedMessage)
 	{
 		socketOutputStream.println(encodedMessage);
+	}
+	
+	public int compareTo(Object o)
+	{	NeighborPeer peer = (NeighborPeer) o; 
+		if(this.datarate < peer.datarate)
+		{
+			return -1; 
+		}
+		if(this.datarate > peer.datarate)
+		{
+			return 1;
+		}
+		return 0; 
 	}
 
 }
