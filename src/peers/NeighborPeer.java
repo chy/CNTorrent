@@ -140,15 +140,15 @@ public class NeighborPeer implements Comparable
 		socketOutputStream.println(encodedMessage);
 	}
 	
-	public int compareTo(Object o)
+	public int compareTo(Object o) //reversed so prefpeers can use a max priority queue instead of the default min
 	{	NeighborPeer peer = (NeighborPeer) o; 
 		if(this.datarate < peer.datarate)
 		{
-			return -1; 
+			return 1; 
 		}
 		if(this.datarate > peer.datarate)
 		{
-			return 1;
+			return -1;
 		}
 		return 0; 
 	}

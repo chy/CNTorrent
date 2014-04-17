@@ -6,14 +6,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 import messages.BitfieldMessage;
 import messages.Choke;
@@ -320,21 +321,68 @@ public class Peer
 	public void updatePreferred()
 	{
 		/*
-		 * If the peer hasn't downloaded the whole file: 
+		 * If this peer hasn't downloaded the whole file: 
 		 * 		Calculate the download rate for each interested peer during the previous download interval (p seconds, unchokeInterval seconds). 
+		 * 			add bytes downloaded to datarate on receipt of each piece (in piece message) 
+		 * 			in prefpeers: datarate /= prefpeersinterval (for each interested peer)
+		 * 			use the datarate, then reset to 0. 
+		 * 			
 		 * 		Unchoke the top nPref senders;
 		 * 		choke anyone else who was unchoked before 
 		 * 			(except the optimistically unchoked peer). 
-		 * If the peer has downloaded the whole file:
+		 * If this peer has downloaded the whole file:
 		 * 		 choose preferred peers randomly from the interested peers.
 		 * 		 Unchoke them.
 		 * 		 choke everyone else except the optimistically unchoked peer.
 		 */
 		
 		//Case 1
-		
+		if(!isDone){
+			
+			PriorityQueue<NeighborPeer> queue = new PriorityQueue<NeighborPeer>(); 
+			
+			//FOR EACH INTERESTED PEER
+			for(NeighborPeer peer : peers.values()){
+				if(peer.peerInterested){
+					queue.add(peer); 
+				}
+				peer.datarate = 0; 
+			}
+			for(int i = 0; i < nPref; i++){
+				NeighborPeer p = queue.poll(); 
+				preferredPeers[i] = p.PEER_ID; 
+				unchoke(p.PEER_ID); 
+			}
+			while(queue.peek() != null){
+				choke(queue.poll().PEER_ID); 
+			}
+		}
 		
 		//Case 2
+		else{
+			ArrayList<NeighborPeer> interested = new ArrayList<NeighborPeer>(); 
+			Random rand = new Random(); 
+			
+			for(NeighborPeer peer : peers.values()){
+				if(peer.peerInterested){
+					interested.add(peer); 
+				}
+				peer.datarate = 0; 
+			}
+			
+			for(int i = 0; i < nPref; i++){
+				int r = rand.nextInt(interested.size()); 
+				
+				NeighborPeer p = interested.get(r);
+				preferredPeers[i] = p.PEER_ID; 
+				unchoke(p.PEER_ID); 
+				interested.remove(r); 
+			}
+			for(NeighborPeer peer : interested){
+				choke(peer.PEER_ID); 
+			}
+			
+		}
 
 	}
 	
