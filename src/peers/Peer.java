@@ -356,26 +356,24 @@ public class Peer
 		
 		//Case 2
 		else{
-			ArrayList<NeighborPeer> interested = new ArrayList<NeighborPeer>(); 
 			Random rand = new Random(); 
+			Integer [] peerIDs = new Integer[peers.size()];
+			peerIDs = peers.keySet().toArray(peerIDs);
+			knuthshuffle(peerIDs); 
 			
-			for(NeighborPeer peer : peers.values()){
-				if(peer.peerInterested){
-					interested.add(peer); 
+			int nPrefDex = 0; 
+			
+			for(int i = 0; i < peerIDs.length; i++){
+				NeighborPeer peer = peers.get(peerIDs[i]); 
+				if(peer.peerInterested && nPrefDex < preferredPeers.length){
+					preferredPeers[nPrefDex++] = peer.PEER_ID; 
+					unchoke(peer.PEER_ID); 					
+					break;
+				}		
+				else{
+					choke(peer.PEER_ID); 
 				}
 				peer.datarate = 0; 
-			}
-			
-			for(int i = 0; i < nPref; i++){
-				int r = rand.nextInt(interested.size()); 
-				
-				NeighborPeer p = interested.get(r);
-				preferredPeers[i] = p.PEER_ID; 
-				unchoke(p.PEER_ID); 
-				interested.remove(r); 
-			}
-			for(NeighborPeer peer : interested){
-				choke(peer.PEER_ID); 
 			}
 			
 		}
