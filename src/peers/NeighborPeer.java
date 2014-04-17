@@ -110,22 +110,34 @@ public class NeighborPeer
 
 	public void waitForConnection()
 	{
-		BufferedReader socketInputStream;
-		try (ServerSocket serverSocket = new ServerSocket(portNumber))
+		Thread socketListenerThread = new Thread(new Runnable()
 		{
-			socket = serverSocket.accept();
-			socketOutputStream = new PrintWriter(socket.getOutputStream(), true);
-			socketInputStream = new BufferedReader(new InputStreamReader(
-					socket.getInputStream()));
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
 
-		amConnected = true;
+			@Override
+			public void run()
+			{
+				BufferedReader socketInputStream;
+				try (ServerSocket serverSocket = new ServerSocket(portNumber))
+				{
+					socket = serverSocket.accept();
+					socketOutputStream = new PrintWriter(
+							socket.getOutputStream(), true);
+					socketInputStream = new BufferedReader(
+							new InputStreamReader(socket.getInputStream()));
+				}
+				catch (IOException e)
+				{
+					throw new RuntimeException(e);
+				}
 
-		startSocketReader(socketInputStream);
+				amConnected = true;
+
+				startSocketReader(socketInputStream);
+			}
+
+		});
+
+		socketListenerThread.start();
 	}
 
 	private void startSocketReader(BufferedReader inputStream)

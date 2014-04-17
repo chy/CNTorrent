@@ -34,18 +34,16 @@ public class Peer
 	public static int numPieces;
 	private boolean isDone; // when THIS peer is done downloading the file
 	
-	// bitfield MUST be a byte array because the largest piece index can be is 2^32, which is too much memory for a boolean array
 	public static Bitfield bitfield; // tracks which pieces of the file have been downloaded
-	
 	public static int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
 	private List<NeighborPeer> peersBeforeThis = new ArrayList<NeighborPeer>(); // peers before this one, for joinTorrent()
 	private List<NeighborPeer> peersAfterThis = new ArrayList<NeighborPeer>(); // peers after this one, for joinTorrent()
+	private int numPeers; // number of peers, including this peer
 	private int[] preferredPeers; // contains the peer ids of preferred peers
 	private int optimisticallyUnchokedPeer; // the peer id of the current optimistically-unchoked peer
 	private String hostname;
 	private int portNumber;
-	public static ServerSocket serverSocket; // socket for uploading to peers
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
 
@@ -89,26 +87,29 @@ public class Peer
 	/**
 	 * This method is called by PeerProcess. It will contain the main loop of our
 	 * program.
-	 * @throws IOException 
 	 */
-	public void run() throws IOException
+	public void run()
 	{
 		// get info from config files
+		System.out.println("Reading config files");
 		readConfigFiles();
 
 		// establish connections with all peers above this peer in the peer info config files
+		System.out.println("Establishing connections with peers already in the torrent");
 		joinTorrent();
 
 		lastPreferredUpdateTime = System.currentTimeMillis();
 		lastOpUnchokeUpdateTime = System.currentTimeMillis();
 
 		// main loop
+		System.out.println("Start main loop");
 		while (numUnfinishedPeers != 0)
 		{
 			MessagePair messagePair;
 			try
 			{
 				// try to get a message from buffer for 5 seconds
+				System.out.println("Trying to get a message from buffer");
 				messagePair = messageQueue.poll(5, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e)
@@ -118,12 +119,14 @@ public class Peer
 
 			if ((System.currentTimeMillis() - lastPreferredUpdateTime) / 1000 >= updatePrefInterval)
 			{
+				System.out.println("Updating preferred neighbors");
 				updatePreferred();
 				lastPreferredUpdateTime = System.currentTimeMillis();
 			}
 
 			if ((System.currentTimeMillis() - lastOpUnchokeUpdateTime) / 1000 >= opUnchokeInterval)
 			{
+				System.out.println("Updating optimistically-unchoked neighbor");
 				optimisticUnchoke();
 				lastOpUnchokeUpdateTime = System.currentTimeMillis();
 			}
@@ -133,14 +136,17 @@ public class Peer
 				String messageString = messagePair.messageString;
 				int senderID = messagePair.senderID;
 				Message m = Message.decodeMessage(messageString, senderID, PEER_ID);
+				System.out.println("Executing a message: " + messageString);
 				executeMessage(m);
 			}
 		}
 
 		// notify all sockets that we are done
+		System.out.println("We are done");
 		setAllPeersDone(true);
 
 		// when all peers have downloaded the file, leave the torrent
+		System.out.println("Leave torrent");
 		leaveTorrent();
 	}
 
@@ -158,14 +164,7 @@ public class Peer
 
 		// initialization after reading peer info config file
 		bitfield = new Bitfield(numPieces, isDone);
-		try
-		{
-			serverSocket = new ServerSocket(portNumber);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
+		numUnfinishedPeers = numPeers;
 	}
 	
 	private void readCommonConfig()
@@ -248,12 +247,15 @@ public class Peer
 			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
 			peersBeforeThis.add(neighborPeer);
+			numPeers++;
 		}
 
 		// we have reached this peer in PeerInfo.cfg
 		hostname = scan.next();
 		portNumber = scan.nextInt();
 		isDone = (scan.nextInt() == 1);
+
+		numPeers++;
 
 		// get rest of info for peers
 		while (scan.hasNext())
@@ -265,6 +267,7 @@ public class Peer
 			NeighborPeer neighborPeer = new NeighborPeer(this, ID, neighborHostname, neighborPortNumber, neighborIsDone, numPieces);
 			peers.put(ID, neighborPeer);
 			peersAfterThis.add(neighborPeer);
+			numPeers++;
 		}
 
 		scan.close();
@@ -278,30 +281,20 @@ public class Peer
 	{
 		for (NeighborPeer neighborPeer : peersBeforeThis)
 		{
+			System.out.println("Establish connection with " + neighborPeer.PEER_ID);
 			neighborPeer.establishConnection();
 			sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
 		}
 
 		for (NeighborPeer neighborPeer : peersAfterThis)
 		{
+			System.out.println("Wait for connection with peer " + neighborPeer.PEER_ID);
 			neighborPeer.waitForConnection();
 		}
 	}
 
-	private void leaveTorrent() throws IOException //not sure of this code... please look over
-	{
-		Iterator<NeighborPeer> iter = peers.values().iterator();
-		while (iter.hasNext())
-		{
-			NeighborPeer neighborPeer = iter.next();
-			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
-			{
-				neighborPeer.socket.close();
-				Peer.serverSocket.close();
-				//sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
-			}
-		}
-		
+	private void leaveTorrent()
+	{		
 		// Close all connections, exit
 	}
 
