@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -25,7 +26,7 @@ public class Peer
 
 	private int nPref; // number of preferred peers
 	private int updatePrefInterval; // update preferred peers every updatePrefInterval seconds
-	private int opUnchokeInterval;
+	private int opUnchokeInterval; // update optimistically-unchoked peer every opUnchokeInterval seconds
 	public final int PEER_ID;
 	private String fileName;
 	private int fileSize;
@@ -47,6 +48,9 @@ public class Peer
 	public static ServerSocket serverSocket; // socket for uploading to peers
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
+
+	private long lastPreferredUpdateTime; // in milliseconds
+	private long lastOpUnchokeUpdateTime; // in milliseconds
 
 	private class MessagePair
 	{
@@ -91,8 +95,12 @@ public class Peer
 	{
 		// get info from config files
 		readConfigFiles();
+
 		// establish connections with all peers above this peer in the peer info config files
 		joinTorrent();
+
+		lastPreferredUpdateTime = System.currentTimeMillis();
+		lastOpUnchokeUpdateTime = System.currentTimeMillis();
 
 		// main loop
 		while (numUnfinishedPeers != 0)
@@ -100,16 +108,33 @@ public class Peer
 			MessagePair messagePair;
 			try
 			{
-				messagePair = messageQueue.take();
+				// try to get a message from buffer for 5 seconds
+				messagePair = messageQueue.poll(5, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e)
 			{
 				throw new RuntimeException(e);
 			}
-			String messageString = messagePair.messageString;
-			int senderID = messagePair.senderID;
-			Message m = Message.decodeMessage(messageString, senderID, PEER_ID);
-			executeMessage(m);
+
+			if ((System.currentTimeMillis() - lastPreferredUpdateTime) / 1000 >= updatePrefInterval)
+			{
+				updatePreferred();
+				lastPreferredUpdateTime = System.currentTimeMillis();
+			}
+
+			if ((System.currentTimeMillis() - lastOpUnchokeUpdateTime) / 1000 >= opUnchokeInterval)
+			{
+				optimisticUnchoke();
+				lastOpUnchokeUpdateTime = System.currentTimeMillis();
+			}
+
+			if (messagePair != null)
+			{
+				String messageString = messagePair.messageString;
+				int senderID = messagePair.senderID;
+				Message m = Message.decodeMessage(messageString, senderID, PEER_ID);
+				executeMessage(m);
+			}
 		}
 
 		// notify all sockets that we are done
