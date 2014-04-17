@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -333,9 +334,23 @@ public class Peer
 		 * unchoke them. (send them an unchoke message, mark them as unchoked).
 		 * Choke the peer that was previously optimistically unchoked.
 		 */
+		Random rand = new Random(); 
+		Integer [] peerIDs = new Integer[peers.size()];
+		peerIDs = peers.keySet().toArray(peerIDs);
 		
+		int index = 0;
+		while(true){
+			NeighborPeer peer = peers.get(peerIDs[index]); 
+			if(peer.peerInterested && peer.amChoking){
+				break;
+			}
+			index = rand.nextInt(peerIDs.length);
+		}
+		
+		optimisticallyUnchokedPeer = peerIDs[index]; 
+		unchoke(optimisticallyUnchokedPeer); 		
 	}
-
+	
 	public void log(String s)
 	{ 
 
