@@ -2,6 +2,8 @@ package messages;
 
 import java.nio.ByteBuffer;
 
+import peers.Peer;
+
 public class NotInterested extends Message {
 
 	public NotInterested (int senderID, int receiverID){
@@ -9,7 +11,8 @@ public class NotInterested extends Message {
 	}
 	public void handle()
 	{
-		
+		//update variables accordingly; sender is not interested in receiver's stuff
+		Peer.peers.get(senderID).peerInterested = false; 
 		
 	}
 	public String encodeMessage()
