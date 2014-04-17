@@ -15,6 +15,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import messages.BitfieldMessage;
 import messages.Choke;
@@ -437,8 +439,11 @@ public class Peer
 	
 	public void log(String s)
 	{ 
+		String time = time() + ":";
+				
 		switch(s){
 		case "TCP":
+			logFile.logger.info(time + "Peer" + PEER_ID + " makes a connection to Peer " + );
 			break;
 		case "neighbor_change":
 			break;
@@ -460,6 +465,15 @@ public class Peer
 			break;
 		}
 
+	}
+	
+	public String time()
+	{
+		Calendar cal = Calendar.getInstance();
+		cal.getTime();
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		
+		return sdf.format(cal.getTime());
 	}
 
 }

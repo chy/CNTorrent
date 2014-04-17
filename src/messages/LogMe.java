@@ -8,8 +8,8 @@ import java.util.logging.SimpleFormatter;
 public class LogMe {
 	
 	public int peer_ID;
-	Logger logger = Logger.getLogger("TorrentLog");
-	FileHandler fh;
+	public Logger logger = Logger.getLogger("TorrentLog");
+	public FileHandler fh;
 	
 	
 	public void createFile( int peer_ID)
