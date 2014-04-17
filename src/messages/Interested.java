@@ -1,5 +1,6 @@
 package messages;
 
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import peers.NeighborPeer;
@@ -43,5 +44,15 @@ public class Interested extends Message
 			Peer.sendMessage(request);
 		}
 	}
-
+	public String encodeMessage()
+	{
+		byte [] length = (ByteBuffer.allocate(4)).putInt(0).array(); 
+	
+		byte [] message = new byte[5];
+		message[4] = 2;// type interested
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		
+		return new String(message); 
+	}
 }

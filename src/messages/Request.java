@@ -1,5 +1,7 @@
 package messages;
 
+import java.nio.ByteBuffer;
+
 import peers.NeighborPeer;
 import peers.Peer;
 import util.Bitfield;
@@ -29,5 +31,18 @@ public class Request extends Message
 			Peer.sendMessage(pieceMessage);
 		}
 	}
-
+	public String encodeMessage()
+	{
+		byte [] payload = (ByteBuffer.allocate(4)).putInt(pieceIndex).array(); // 4-byte index of the file piece
+		byte [] length = (ByteBuffer.allocate(4)).putInt(payload.length).array(); 
+		
+		byte [] message = new byte[5+payload.length];
+		message[4] = 6;// type request
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		System.arraycopy(payload, 0, message, 5, payload.length); 
+		
+		return new String(message); 
+		
+	}
 }

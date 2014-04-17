@@ -13,7 +13,7 @@ public abstract class Message
 		this.senderID = senderID;	
 		this.receiverID = receiverID; 
 	}
-
+// length [4 bytes] type [1 byte] payload [other bytes]
 	public static Message decodeMessage(String messageString, int senderID, int receiverID)
 	{
 		byte[] bytes = messageString.getBytes();
@@ -30,7 +30,7 @@ public abstract class Message
 			pieceIndex = payloadByteBuffer.getInt();
 		}
 		else if (messageType == 5)
-		{
+		{// length [4 bytes] type [1 byte] bitfield [remaining bytes] 
 			int length = bytes.length - 5;
 			payloadBytes = new byte[length];
 			System.arraycopy(bytes, 5, payloadBytes, 0, length);

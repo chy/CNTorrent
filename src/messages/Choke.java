@@ -1,5 +1,7 @@
 package messages;
 
+import java.nio.ByteBuffer;
+
 import peers.*;
 
 public class Choke extends Message{
@@ -20,5 +22,18 @@ public class Choke extends Message{
 		chokingPeer.peerChoking = true; 
 		
 	}
-
+	
+	public String encodeMessage()
+	{
+		ByteBuffer b = ByteBuffer.allocate(4);
+		b.putInt(0); 
+		byte [] length = b.array(); 
+		
+		byte [] message = new byte[5];
+		message[4] = 0;// type choke
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		
+		return new String(message); 
+	}
 }

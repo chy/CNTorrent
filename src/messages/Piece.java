@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -114,5 +115,18 @@ public class Piece extends Message
 	public int getPieceIndex(){
 		return this.pieceIndex; 
 	}
-	
+	public String encodeMessage()
+	{
+		byte [] payload = (ByteBuffer.allocate(4)).putInt(pieceIndex).array(); // 4-byte index of the file piece and the contents of the piece
+		byte [] length = (ByteBuffer.allocate(4)).putInt(payload.length).array(); 
+		
+		byte [] message = new byte[5+payload.length+piece.length];
+		message[4] = 7;// type piece
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		System.arraycopy(payload, 0, message, 5, payload.length); 
+		System.arraycopy(piece, 0, message, 5+payload.length, piece.length);
+		
+		return new String(message); 
+	}	
 }

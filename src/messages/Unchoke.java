@@ -1,5 +1,6 @@
 package messages;
 
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import peers.NeighborPeer;
@@ -40,5 +41,15 @@ public class Unchoke extends Message
 			Peer.sendMessage(requestMessage);
 		}
 	}
-
+	public String encodeMessage()
+	{
+		byte [] length = (ByteBuffer.allocate(4)).putInt(0).array(); 
+		
+		byte [] message = new byte[5];
+		message[4] = 1;// type unchoke
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		
+		return new String(message); 
+	}
 }

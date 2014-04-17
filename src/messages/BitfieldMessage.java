@@ -1,5 +1,7 @@
 package messages;
 
+import java.nio.ByteBuffer;
+
 import peers.NeighborPeer;
 import peers.Peer;
 import util.Bitfield;
@@ -57,6 +59,22 @@ public class BitfieldMessage extends Message
 			Peer.sendMessage(notInterestedMessage);
 		}
 
+	}
+	
+	public String encodeMessage()
+	{	byte [] bitfield = senderBitfield.getBitfield(); 
+	
+		ByteBuffer b = ByteBuffer.allocate(4);
+		b.putInt(bitfield.length); 
+		byte [] length = b.array(); 
+	
+		byte [] message = new byte[5+bitfield.length]; 
+		message[4] = 5; //type bitfield
+		
+		System.arraycopy(length, 0, message, 0, 4); 
+		System.arraycopy(bitfield, 0, message, 5, bitfield.length); 
+		
+		return new String(message); 
 	}
 
 }
