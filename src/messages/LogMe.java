@@ -8,8 +8,8 @@ import java.util.logging.SimpleFormatter;
 public class LogMe {
 	
 	public int peer_ID;
-	Logger logger = Logger.getLogger("TorrentLog");
-	FileHandler fh;
+	public Logger logger = Logger.getLogger("TorrentLog");
+	public FileHandler fh;
 	
 	
 	public void createFile( int peer_ID)
@@ -23,7 +23,7 @@ public class LogMe {
 			
 			fh = new FileHandler(fileLocation);	//file will be created in this location
 			logger.addHandler(fh);
-			logger.setLevel(Level.INFO); //set level to only dislay SEVERE, Warning, and info type messages
+			logger.setLevel(Level.INFO); //set level to only display SEVERE, Warning, and info type messages
 			
 			//provides very simple formatting for the logs
 			SimpleFormatter formatter = new SimpleFormatter();

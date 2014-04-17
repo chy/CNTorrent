@@ -2,11 +2,12 @@ package peers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.ServerSocket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
@@ -14,9 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 import messages.BitfieldMessage;
 import messages.Choke;
+import messages.LogMe;
 import messages.Message;
 import messages.Unchoke;
 import util.Bitfield;
@@ -46,6 +47,8 @@ public class Peer
 	private int portNumber;
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
+	private LogMe logFile; // this will be the object that handles Log
+	
 
 	private long lastPreferredUpdateTime; // in milliseconds
 	private long lastOpUnchokeUpdateTime; // in milliseconds
@@ -82,6 +85,7 @@ public class Peer
 	public Peer(int peerID)
 	{
 		this.PEER_ID = peerID; // this should be supplied as a command-line parameter when PeerProcess is started
+		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
 	}
 	
 	/**
@@ -294,7 +298,7 @@ public class Peer
 	}
 
 	private void leaveTorrent()
-	{		
+	{
 		// Close all connections, exit
 	}
 
@@ -313,21 +317,68 @@ public class Peer
 	public void updatePreferred()
 	{
 		/*
-		 * If the peer hasn't downloaded the whole file: 
+		 * If this peer hasn't downloaded the whole file: 
 		 * 		Calculate the download rate for each interested peer during the previous download interval (p seconds, unchokeInterval seconds). 
+		 * 			add bytes downloaded to datarate on receipt of each piece (in piece message) 
+		 * 			in prefpeers: datarate /= prefpeersinterval (for each interested peer)
+		 * 			use the datarate, then reset to 0. 
+		 * 			
 		 * 		Unchoke the top nPref senders;
 		 * 		choke anyone else who was unchoked before 
 		 * 			(except the optimistically unchoked peer). 
-		 * If the peer has downloaded the whole file:
+		 * If this peer has downloaded the whole file:
 		 * 		 choose preferred peers randomly from the interested peers.
 		 * 		 Unchoke them.
 		 * 		 choke everyone else except the optimistically unchoked peer.
 		 */
 		
 		//Case 1
-		
+		if(!isDone){
+			
+			PriorityQueue<NeighborPeer> queue = new PriorityQueue<NeighborPeer>(); 
+			
+			//FOR EACH INTERESTED PEER
+			for(NeighborPeer peer : peers.values()){
+				if(peer.peerInterested){
+					queue.add(peer); 
+				}
+				peer.datarate = 0; 
+			}
+			for(int i = 0; i < nPref; i++){
+				NeighborPeer p = queue.poll(); 
+				preferredPeers[i] = p.PEER_ID; 
+				unchoke(p.PEER_ID); 
+			}
+			while(queue.peek() != null){
+				choke(queue.poll().PEER_ID); 
+			}
+		}
 		
 		//Case 2
+		else{
+			ArrayList<NeighborPeer> interested = new ArrayList<NeighborPeer>(); 
+			Random rand = new Random(); 
+			
+			for(NeighborPeer peer : peers.values()){
+				if(peer.peerInterested){
+					interested.add(peer); 
+				}
+				peer.datarate = 0; 
+			}
+			
+			for(int i = 0; i < nPref; i++){
+				int r = rand.nextInt(interested.size()); 
+				
+				NeighborPeer p = interested.get(r);
+				preferredPeers[i] = p.PEER_ID; 
+				unchoke(p.PEER_ID); 
+				interested.remove(r); 
+			}
+			for(NeighborPeer peer : interested){
+				choke(peer.PEER_ID); 
+			}
+			
+		}
 
 	}
 	
@@ -369,24 +420,70 @@ public class Peer
 		Random rand = new Random(); 
 		Integer [] peerIDs = new Integer[peers.size()];
 		peerIDs = peers.keySet().toArray(peerIDs);
+		knuthshuffle(peerIDs); 
 		
-		int index = 0;
-		while(true){
-			NeighborPeer peer = peers.get(peerIDs[index]); 
+	
+		for(int i = 0; i < peerIDs.length; i++){
+			NeighborPeer peer = peers.get(peerIDs[i]); 
 			if(peer.peerInterested && peer.amChoking){
+				
+				optimisticallyUnchokedPeer = peerIDs[i]; 
+				unchoke(optimisticallyUnchokedPeer); 
+				
 				break;
-			}
-			index = rand.nextInt(peerIDs.length);
+			}		
 		}
+				
+	}
+	
+	public void knuthshuffle(Integer [] arr){
+		Random rand = new Random(); 
 		
-		optimisticallyUnchokedPeer = peerIDs[index]; 
-		unchoke(optimisticallyUnchokedPeer); 		
+		for(int i = arr.length-1; i > 0; i--){
+			int j = rand.nextInt(i); 
+			int temp = arr[j];
+			arr[j] = arr[i];
+			arr[i] = temp; 
+		}
 	}
 	
 	public void log(String s)
 	{ 
-		System.out.println(" ");
+		String time = time() + ":";
+				
+		switch(s){
+		case "TCP":
+			//logFile.logger.info(time + "Peer" + PEER_ID + " makes a connection to Peer " + );
+			break;
+		case "neighbor_change":
+			break;
+		case "opt_unchoke_neighbor_change":
+			break;
+		case "unchoke":
+			break;
+		case "choke":
+			break;
+		case "receive_have":
+			break;
+		case "receive_interested":
+			break;
+		case "receive_noInterest":
+			break;
+		case "download_piece":
+			break;
+		case "download_complete":
+			break;
+		}
 
+	}
+	
+	public String time()
+	{
+		Calendar cal = Calendar.getInstance();
+		cal.getTime();
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		
+		return sdf.format(cal.getTime());
 	}
 
 }
