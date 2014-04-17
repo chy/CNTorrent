@@ -13,6 +13,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 import messages.BitfieldMessage;
 import messages.Choke;
 import messages.Message;
@@ -84,8 +85,9 @@ public class Peer
 	/**
 	 * This method is called by PeerProcess. It will contain the main loop of our
 	 * program.
+	 * @throws IOException 
 	 */
-	public void run()
+	public void run() throws IOException
 	{
 		// get info from config files
 		readConfigFiles();
@@ -261,8 +263,20 @@ public class Peer
 		}
 	}
 
-	private void leaveTorrent()
+	private void leaveTorrent() throws IOException //not sure of this code... please look over
 	{
+		Iterator<NeighborPeer> iter = peers.values().iterator();
+		while (iter.hasNext())
+		{
+			NeighborPeer neighborPeer = iter.next();
+			if (peersBeforeThis.contains(neighborPeer.PEER_ID))
+			{
+				neighborPeer.socket.close();
+				Peer.serverSocket.close();
+				//sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
+			}
+		}
+		
 		// Close all connections, exit
 	}
 
@@ -353,6 +367,7 @@ public class Peer
 	
 	public void log(String s)
 	{ 
+		System.out.println(" ");
 
 	}
 
