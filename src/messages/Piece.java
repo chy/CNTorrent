@@ -33,6 +33,7 @@ public class Piece extends Message
 		 * 			store the piece
 		 * 			update bitfield
 		 * 			update interested
+		 * 			update datarate for sending neighborpeer
 		 * 			send have to all neighbors
 		 * 	If you are still unchoked and are still interested in something the sender has:
 		 * 			 request another random piece that you are interested in from it	 * 
@@ -43,6 +44,8 @@ public class Piece extends Message
 		writePieceToFile(piece);
 		
 		NeighborPeer sendingPeer = Peer.peers.get(this.senderID); 
+			sendingPeer.datarate += piece.length; 
+		
 		Bitfield myBitfield = Peer.bitfield;
 		myBitfield.setPiece(pieceIndex, true);
 		

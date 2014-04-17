@@ -22,7 +22,7 @@ public class NeighborPeer
 	public boolean amInterested; // am I interested in a piece this peer has?
 	public boolean peerChoking; // is this peer choking me?
 	public boolean peerInterested; // is this peer interested in a piece I have?
-	public double datarate;
+	public double datarate; //just bytes (updated in piece.handle) until datarate is actually calculated in Peer.updatePreferred
 	private final String hostname;
 	private final int portNumber;
 	private Socket socket; // socket for downloading from peers
