@@ -49,11 +49,7 @@ public abstract class Message
 		}
 	}
 
-	public String encodeMessage()
-	{
-		// TODO return a String from this Message object that follows the BitTorrent protocol
-		return null;
-	}
+	public abstract String encodeMessage();
 
 	public abstract void handle();
 
