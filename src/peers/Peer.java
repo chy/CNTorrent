@@ -339,10 +339,12 @@ public class Peer
 			
 			//FOR EACH INTERESTED PEER
 			for(NeighborPeer peer : peers.values()){
-				if(peer.peerInterested){
-					queue.add(peer); 
+				if(peer != null){
+					if(peer.peerInterested){
+						queue.add(peer); 
+					}
+					peer.datarate = 0; 
 				}
-				peer.datarate = 0; 
 			}
 			for(int i = 0; i < nPref; i++){
 				NeighborPeer p = queue.poll(); 
@@ -375,15 +377,20 @@ public class Peer
 			
 			for(int i = 0; i < peerIDs.length; i++){
 				NeighborPeer peer = peers.get(peerIDs[i]); 
-				if(peer.peerInterested && nPrefDex < preferredPeers.length){
-					preferredPeers[nPrefDex++] = peer.PEER_ID; 
-					unchoke(peer.PEER_ID); 					
-					break;
-				}		
-				else{
-					choke(peer.PEER_ID); 
+				if(peer != null){
+					if(peer.peerInterested && nPrefDex < preferredPeers.length){
+						preferredPeers[nPrefDex++] = peer.PEER_ID; 
+						unchoke(peer.PEER_ID); 					
+						break;
+					}		
+					else{
+						choke(peer.PEER_ID); 
+					}
+					peer.datarate = 0; 
 				}
-				peer.datarate = 0; 
+				else{
+					System.err.println("Error! Peer.prefpeers unconnectedto peer"); 	
+				}
 			}
 			
 		}
