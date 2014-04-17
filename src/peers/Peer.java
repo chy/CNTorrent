@@ -29,8 +29,10 @@ public class Peer
 	private int pieceSize;
 	public static int numPieces;
 	private boolean isDone; // when THIS peer is done downloading the file
+	
 	// bitfield MUST be a byte array because the largest piece index can be is 2^32, which is too much memory for a boolean array
 	public static Bitfield bitfield; // tracks which pieces of the file have been downloaded
+	
 	public static int numUnfinishedPeers; // leave the torrent when this is 0
 	public static HashMap<Integer, NeighborPeer> peers = new HashMap<Integer, NeighborPeer>(); // tracks pertinant information for neighbor peers of the current peer
 	private HashSet<Integer> peersBeforeThis = new HashSet<Integer>(); // peers before this one, for joinTorrent()
@@ -98,7 +100,7 @@ public class Peer
 		joinTorrent();
 
 		// main loop
-		while (numUnfinishedPeers == 0)
+		while (numUnfinishedPeers != 0)
 		{
 			MessagePair messagePair = readFromBuffer();
 			String messageString = messagePair.messageString;
