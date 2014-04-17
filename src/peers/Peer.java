@@ -423,18 +423,31 @@ public class Peer
 		Random rand = new Random(); 
 		Integer [] peerIDs = new Integer[peers.size()];
 		peerIDs = peers.keySet().toArray(peerIDs);
+		knuthshuffle(peerIDs); 
 		
-		int index = 0;
-		while(true){
-			NeighborPeer peer = peers.get(peerIDs[index]); 
+	
+		for(int i = 0; i < peerIDs.length; i++){
+			NeighborPeer peer = peers.get(peerIDs[i]); 
 			if(peer.peerInterested && peer.amChoking){
+				
+				optimisticallyUnchokedPeer = peerIDs[i]; 
+				unchoke(optimisticallyUnchokedPeer); 
+				
 				break;
-			}
-			index = rand.nextInt(peerIDs.length);
+			}		
 		}
+				
+	}
+	
+	public void knuthshuffle(Integer [] arr){
+		Random rand = new Random(); 
 		
-		optimisticallyUnchokedPeer = peerIDs[index]; 
-		unchoke(optimisticallyUnchokedPeer); 		
+		for(int i = arr.length-1; i > 0; i--){
+			int j = rand.nextInt(i); 
+			int temp = arr[j];
+			arr[j] = arr[i];
+			arr[i] = temp; 
+		}
 	}
 	
 	public void log(String s)
