@@ -12,19 +12,25 @@ import peers.NeighborPeer;
 import peers.Peer;
 import util.Bitfield;
 
-// UNFINISHED, but compiles. 
 public class Piece extends Message
 {
 
 	private int pieceIndex; //id of the piece being sent
 	public byte [] piece; //byte array of the contents of the piece to be sent
 
+	public Piece (int senderID, int receiverID, int pieceIndex, byte [] piece){
+		//this constructor is used when -receiving- 
+		super(senderID, receiverID);
+		this.pieceIndex = pieceIndex;
+		this.piece = piece; 
+	}
+	
 	public Piece (int senderID, int receiverID, int pieceIndex){
+		//this constructor used when -sending- 
 		super(senderID, receiverID);
 		this.pieceIndex = pieceIndex;
 		loadPiece(pieceIndex);
-	}
-	
+	}	
 	//Recieve methods: Called when a piece message is received
 	@Override
 	public void handle() {

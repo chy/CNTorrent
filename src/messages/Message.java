@@ -18,30 +18,33 @@ public abstract class Message
 	public static Message decodeMessage(String messageString, int senderID, int receiverID)
 	{
 		//NOTE: for handshake (8) senderID is actually the SOCKET ID. 
-	//	System.err.println("Decoding message :" + messageString);
+//		System.err.println("Decoding message :" + messageString);
 		
 		byte[] bytes = messageString.getBytes();
-				
+		
 		byte messageType = bytes[4]; 
 		
-	//	System.err.println(messageType);
+	//	System.err.println(messageString.getBytes());
 		
 		byte[] payloadBytes = null;
 		int pieceIndex = -1;
 
-		if (messageType == 4 || messageType == 6 || messageType == 7 || messageType == 8)
+		if (messageType == 4 || messageType == 6 || messageType == 8)
 		{
 			payloadBytes = new byte[4];
 			System.arraycopy(bytes, 5, payloadBytes, 0, 4);
 			ByteBuffer payloadByteBuffer = ByteBuffer.wrap(payloadBytes);
 			pieceIndex = payloadByteBuffer.getInt();
+
 		}
-		else if (messageType == 5)
+		else if (messageType == 5 || messageType == 7)
 		{// length [4 bytes] type [1 byte] bitfield [remaining bytes] 
 			int length = bytes.length - 5;
 			payloadBytes = new byte[length];
 			System.arraycopy(bytes, 5, payloadBytes, 0, length);
+	//		System.err.println(new String(payloadBytes));		
 		}
+
 		switch (messageType)
 		{
 		case 0: return new Choke(senderID, receiverID);
@@ -51,7 +54,7 @@ public abstract class Message
 		case 4: return new Have(senderID, receiverID, pieceIndex);
 		case 5: return new BitfieldMessage(senderID, receiverID, payloadBytes);
 		case 6: return new Request(senderID, receiverID, pieceIndex);
-		case 7: return new Piece(senderID, receiverID, pieceIndex);
+		case 7: return new Piece(senderID, receiverID, pieceIndex, payloadBytes);
 		case 8: return new Handshake(ByteBuffer.wrap(payloadBytes).getInt(), receiverID, senderID); 
 		default: throw new RuntimeException("Cannot decode message with value " + messageType);
 		}

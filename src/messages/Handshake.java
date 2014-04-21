@@ -7,7 +7,7 @@ import peers.Peer;
 public class Handshake extends Message
 {
 
-	private int socketID;
+	public int socketID;
 
 	public Handshake(int senderID, int receiverID, int socketID)
 	{
