@@ -16,13 +16,16 @@ public abstract class Message
 // length [4 bytes] type [1 byte] payload [other bytes]
 	public static Message decodeMessage(String messageString, int senderID, int receiverID)
 	{
+		//NOTE: for handshake (-1) senderID is actually the SOCKET ID. 
+	
 		byte[] bytes = messageString.getBytes();
 		byte[] messageTypeBytes = new byte[] { bytes[4] };
 		ByteBuffer messageTypeByteBuffer = ByteBuffer.wrap(messageTypeBytes);
 		int messageType = messageTypeByteBuffer.getInt();
 		byte[] payloadBytes = null;
 		int pieceIndex = -1;
-		if (messageType == 4 || messageType == 6 || messageType == 7)
+
+		if (messageType == -1 || messageType == 4 || messageType == 6 || messageType == 7)
 		{
 			payloadBytes = new byte[4];
 			System.arraycopy(bytes, 5, payloadBytes, 0, 4);
@@ -37,7 +40,7 @@ public abstract class Message
 		}
 		switch (messageType)
 		{
-		case -1: return new Handshake(senderID, receiverID); 
+		case -1: return new Handshake(ByteBuffer.wrap(payloadBytes).getInt(), receiverID, senderID); 
 		case 0: return new Choke(senderID, receiverID);
 		case 1: return new Unchoke(senderID, receiverID);
 		case 2: return new Interested(senderID, receiverID);
