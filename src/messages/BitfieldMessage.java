@@ -29,7 +29,6 @@ public class BitfieldMessage extends Message
 		// Else, send not interested
 		// update interested, as well
 		NeighborPeer neighborPeer = Peer.peers.get(this.senderID);
-		neighborPeer.establishConnection(); // connect to peer
 
 		Bitfield myBitfield = Peer.bitfield;
 

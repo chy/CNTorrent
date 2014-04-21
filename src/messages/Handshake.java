@@ -2,34 +2,43 @@ package messages;
 
 import java.nio.ByteBuffer;
 
-public class Handshake extends Message {
+import peers.Peer;
 
-	public Handshake(int senderID, int receiverID)
+public class Handshake extends Message
+{
+
+	private int socketID;
+
+	public Handshake(int senderID, int receiverID, int socketID)
 	{
 		super(senderID, receiverID);
+		this.socketID = socketID;
 	}
 
 	@Override
-	public void handle() {
-		// TODO Auto-generated method stub
+	public void handle()
+	{
+		// link socket with sender ID
+		Peer.linkSocket(socketID, senderID);
 
+		// send bitfield message
+		Peer.sendMessage(new BitfieldMessage(receiverID, senderID, Peer.bitfield));
 	}
 
 	@Override
-	public String encodeMessage() {
-		{					
-			byte [] payload = (ByteBuffer.allocate(4)).putInt(senderID).array(); // 4-byte index of the file piece
-			byte [] length = (ByteBuffer.allocate(4)).putInt(payload.length).array(); 
-			
-			byte [] message = new byte[5+payload.length];
-			message[4] = -1;// type handshake
-			
-			System.arraycopy(length, 0, message, 0, 4); 
-			System.arraycopy(payload, 0, message, 5, payload.length); 
-			
-			return new String(message); 
-		}
+	public String encodeMessage()
+	{
+		// 4-byte index of the file piece
+		byte[] payload = (ByteBuffer.allocate(4)).putInt(senderID).array();
+		byte[] length = (ByteBuffer.allocate(4)).putInt(payload.length).array();
+
+		byte[] message = new byte[5 + payload.length];
+		message[4] = 8;// type handshake
+
+		System.arraycopy(length, 0, message, 0, 4);
+		System.arraycopy(payload, 0, message, 5, payload.length);
+
+		return new String(message);
 	}
-	
-	
+
 }

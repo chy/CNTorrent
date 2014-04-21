@@ -2,6 +2,10 @@ package peers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,8 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import messages.BitfieldMessage;
 import messages.Choke;
+import messages.Handshake;
 import messages.LogMe;
 import messages.Message;
 import messages.Unchoke;
@@ -49,7 +53,9 @@ public class Peer
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
 	private LogMe logFile = new LogMe(); // this will be the object that handles Log
-	
+
+	private ServerSocket serverSocket;
+	private static List<ClientSocketHandler> clientSockets = new ArrayList<ClientSocketHandler>();
 
 	private long lastPreferredUpdateTime; // in milliseconds
 	private long lastOpUnchokeUpdateTime; // in milliseconds
@@ -98,6 +104,63 @@ public class Peer
 		// get info from config files
 		System.out.println("Reading config files");
 		readConfigFiles();
+
+		// create ServerSocket
+		try
+		{
+			serverSocket = new ServerSocket(portNumber);
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+
+		// create a new thread to handle socket connections
+		Thread serverSocketThread = new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				try
+				{
+					while (true)
+					{
+						Socket clientSocket;
+						try
+						{
+							clientSocket = serverSocket.accept();
+						}
+						catch (IOException e)
+						{
+							throw new RuntimeException("Could not open connection with socket", e);
+						}
+
+						ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
+						Peer.clientSockets.add(csh);
+						Thread clientSocketThread = new Thread(csh);
+						clientSocketThread.setDaemon(true);
+						clientSocketThread.start();
+					}
+				}
+				finally
+				{
+					// close ServerSocket
+					try
+					{
+						serverSocket.close();
+					}
+					catch (IOException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			}
+
+		});
+
+		serverSocketThread.setDaemon(true);
+		serverSocketThread.start();
 
 		// establish connections with all peers above this peer in the peer info config files
 		System.out.println("Establishing connections with peers already in the torrent");
@@ -287,14 +350,32 @@ public class Peer
 		for (NeighborPeer neighborPeer : peersBeforeThis)
 		{
 			System.out.println("Establish connection with " + neighborPeer.PEER_ID);
-			neighborPeer.establishConnection();
-			sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
+
+			Socket clientSocket;
+			try
+			{
+				clientSocket = new Socket(neighborPeer.hostname, neighborPeer.portNumber);
+			}
+			catch (UnknownHostException e)
+			{
+				throw new RuntimeException(e);
+			}
+			catch (IOException e)
+			{
+				throw new RuntimeException(e);
+			}
+			ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
+			Peer.clientSockets.add(csh);
+			Thread clientSocketThread = new Thread(csh);
+			clientSocketThread.setDaemon(true);
+			clientSocketThread.start();
+
+			sendMessage(new Handshake(PEER_ID, neighborPeer.PEER_ID, -1));
 		}
 
 		for (NeighborPeer neighborPeer : peersAfterThis)
 		{
 			System.out.println("Wait for connection with peer " + neighborPeer.PEER_ID);
-			neighborPeer.waitForConnection();
 		}
 	}
 
@@ -303,11 +384,25 @@ public class Peer
 		// Close all connections, exit
 	}
 
+	public static void linkSocket(int socketID, int senderID)
+	{
+		Peer.clientSockets.get(socketID).setPeerID(senderID);
+	}
+
 	public static void sendMessage(Message m)
 	{
-		NeighborPeer neighborPeer = peers.get(m.receiverID);
+		int receiverID = m.receiverID;
 		String encodedMessage = m.encodeMessage();
-		neighborPeer.sendMessageToPeer(encodedMessage);
+		for (ClientSocketHandler csh : clientSockets)
+		{
+			if (csh.getPeerID() == receiverID)
+			{
+				csh.sendMessageToPeer(encodedMessage);
+				return;
+			}
+		}
+
+		System.err.println("Could not send message: " + encodedMessage);
 	}
 	
 	private void executeMessage(Message m)
