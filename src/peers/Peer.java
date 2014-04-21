@@ -141,9 +141,10 @@ public class Peer
 
 						// wait for handshake
 						int senderID = -1;
-						try (BufferedReader in = new BufferedReader(new InputStreamReader(
-								clientSocket.getInputStream())))
+						try
 						{
+							BufferedReader in = new BufferedReader(new InputStreamReader(
+									clientSocket.getInputStream()));
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
