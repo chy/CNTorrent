@@ -148,6 +148,7 @@ public class Peer
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
+							System.out.println("Received handshake " + m.senderID + " -> " + PEER_ID); 
 						}
 						catch (IOException e)
 						{
