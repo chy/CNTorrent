@@ -136,6 +136,8 @@ public class Peer
 							throw new RuntimeException("Could not open connection with socket", e);
 						}
 
+						System.err.println("Found a socket, adding to " + Peer.clientSockets.size());
+
 						ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
 						Peer.clientSockets.add(csh);
 						Thread clientSocketThread = new Thread(csh);
@@ -354,6 +356,7 @@ public class Peer
 			Socket clientSocket;
 			try
 			{
+				System.err.println(neighborPeer.hostname + " " + neighborPeer.portNumber);
 				clientSocket = new Socket(neighborPeer.hostname, neighborPeer.portNumber);
 			}
 			catch (UnknownHostException e)
@@ -364,13 +367,16 @@ public class Peer
 			{
 				throw new RuntimeException(e);
 			}
+
 			ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
 			Peer.clientSockets.add(csh);
 			Thread clientSocketThread = new Thread(csh);
 			clientSocketThread.setDaemon(true);
 			clientSocketThread.start();
 
-			sendMessage(new Handshake(PEER_ID, neighborPeer.PEER_ID, -1));
+			Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID, -1);
+			String encodedMessage = handshake.encodeMessage();
+			csh.sendMessageToPeer(encodedMessage);
 		}
 
 		for (NeighborPeer neighborPeer : peersAfterThis)
