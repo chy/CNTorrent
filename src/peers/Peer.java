@@ -1,8 +1,11 @@
 package peers;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -136,9 +139,32 @@ public class Peer
 							throw new RuntimeException("Could not open connection with socket", e);
 						}
 
-						System.err.println("Found a socket, adding to " + Peer.clientSockets.size());
+						// wait for handshake
+						int senderID = -1;
+						try (BufferedReader in = new BufferedReader(new InputStreamReader(
+								clientSocket.getInputStream())))
+						{
+							String messageString = in.readLine();
+							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
+							senderID = m.senderID;
+						}
+						catch (IOException e)
+						{
+							try
+							{
+								clientSocket.close();
+							}
+							catch (IOException e1)
+							{
+								e1.printStackTrace();
+							}
 
-						ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
+							throw new RuntimeException(e);
+						}
+
+						System.err.println("Found a socket from peer ID " + senderID);
+
+						ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, senderID);
 						Peer.clientSockets.add(csh);
 						Thread clientSocketThread = new Thread(csh);
 						clientSocketThread.setDaemon(true);
@@ -368,15 +394,39 @@ public class Peer
 				throw new RuntimeException(e);
 			}
 
-			ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, Peer.clientSockets.size());
+			// send handshake, wait for handshake back
+			try (PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
+					BufferedReader in = new BufferedReader(new InputStreamReader(
+					clientSocket.getInputStream())))
+			{
+				// send handshake
+				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
+				String encodedMessage = handshake.encodeMessage();
+				out.println(encodedMessage);
+
+				// wait for handshake back
+				String messageString = in.readLine();
+				addToMessageQueue(messageString, neighborPeer.PEER_ID);
+			}
+			catch (IOException e)
+			{
+				try
+				{
+					clientSocket.close();
+				}
+				catch (IOException e1)
+				{
+					e1.printStackTrace();
+				}
+
+				throw new RuntimeException(e);
+			}
+
+			ClientSocketHandler csh = new ClientSocketHandler(clientSocket, Peer.this, neighborPeer.PEER_ID);
 			Peer.clientSockets.add(csh);
 			Thread clientSocketThread = new Thread(csh);
 			clientSocketThread.setDaemon(true);
 			clientSocketThread.start();
-
-			Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID, -1);
-			String encodedMessage = handshake.encodeMessage();
-			csh.sendMessageToPeer(encodedMessage);
 		}
 
 		for (NeighborPeer neighborPeer : peersAfterThis)
@@ -388,11 +438,6 @@ public class Peer
 	private void leaveTorrent()
 	{
 		// Close all connections, exit
-	}
-
-	public static void linkSocket(int socketID, int senderID)
-	{
-		Peer.clientSockets.get(socketID).setPeerID(senderID);
 	}
 
 	public static void sendMessage(Message m)

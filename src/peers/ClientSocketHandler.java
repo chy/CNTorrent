@@ -14,24 +14,17 @@ class ClientSocketHandler
 	private PrintWriter outputStream;
 	private Peer peer;
 	private int peerID;
-	private boolean peerIDSet = false;
 
 	public int getPeerID()
 	{
 		return peerID;
 	}
 
-	public void setPeerID(int peerID)
-	{
-		this.peerID = peerID;
-		peerIDSet = true;
-	}
-
-	ClientSocketHandler(Socket clientSocket, Peer peer, int socketID)
+	ClientSocketHandler(Socket clientSocket, Peer peer, int peerID)
 	{
 		this.clientSocket = clientSocket;
 		this.peer = peer;
-		this.peerID = socketID;
+		this.peerID = peerID;
 		try
 		{
 			outputStream =  new PrintWriter(clientSocket.getOutputStream(), true);
@@ -57,8 +50,6 @@ class ClientSocketHandler
 			while ((messageString = in.readLine()) != null)
 			{
 				peer.addToMessageQueue(messageString, peerID);
-				// wait for handshake to set peer ID
-				while (!peerIDSet);
 			}
 		}
 		catch (IOException e)

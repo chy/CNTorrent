@@ -7,21 +7,15 @@ import peers.Peer;
 public class Handshake extends Message
 {
 
-	public int socketID;
-
-	public Handshake(int senderID, int receiverID, int socketID)
+	public Handshake(int senderID, int receiverID)
 	{
 		super(senderID, receiverID);
-		this.socketID = socketID;
 	}
 
 	@Override
 	public void handle()
 	{
 		System.out.println("Handshaking " + senderID + " -> " + receiverID);
-
-		// link socket with sender ID
-		Peer.linkSocket(socketID, senderID);
 
 		// send bitfield message
 		Peer.sendMessage(new BitfieldMessage(receiverID, senderID, Peer.bitfield));

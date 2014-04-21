@@ -1,7 +1,6 @@
 package messages;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public abstract class Message
 {
@@ -55,7 +54,7 @@ public abstract class Message
 		case 5: return new BitfieldMessage(senderID, receiverID, payloadBytes);
 		case 6: return new Request(senderID, receiverID, pieceIndex);
 		case 7: return new Piece(senderID, receiverID, pieceIndex, payloadBytes);
-		case 8: return new Handshake(ByteBuffer.wrap(payloadBytes).getInt(), receiverID, senderID); 
+		case 8: return new Handshake(ByteBuffer.wrap(payloadBytes).getInt(), receiverID); 
 		default: throw new RuntimeException("Cannot decode message with value " + messageType);
 		}
 	}
