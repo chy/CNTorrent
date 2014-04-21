@@ -403,6 +403,7 @@ public class Peer
 		{
 			if (csh.getPeerID() == receiverID)
 			{
+				System.out.println("Sending message " + encodedMessage);
 				csh.sendMessageToPeer(encodedMessage);
 				return;
 			}

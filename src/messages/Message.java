@@ -18,7 +18,7 @@ public abstract class Message
 	public static Message decodeMessage(String messageString, int senderID, int receiverID)
 	{
 		//NOTE: for handshake (8) senderID is actually the SOCKET ID. 
-//		System.err.println("Decoding message :" + messageString);
+		System.out.println("Decoding message: " + messageString);
 		
 		byte[] bytes = messageString.getBytes();
 		
