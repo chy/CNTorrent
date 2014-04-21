@@ -150,6 +150,7 @@ public class Peer
 						}
 						catch (IOException e)
 						{
+							/*
 							try
 							{
 								clientSocket.close();
@@ -158,6 +159,7 @@ public class Peer
 							{
 								e1.printStackTrace();
 							}
+							*/
 
 							throw new RuntimeException(e);
 						}
@@ -410,6 +412,7 @@ public class Peer
 			}
 			catch (IOException e)
 			{
+				/*
 				try
 				{
 					clientSocket.close();
@@ -418,6 +421,7 @@ public class Peer
 				{
 					e1.printStackTrace();
 				}
+				*/
 
 				throw new RuntimeException(e);
 			}
