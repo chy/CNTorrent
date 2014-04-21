@@ -402,6 +402,7 @@ public class Peer
 			{
 				PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
+				System.out.println("Sending handshake: " + PEER_ID + " -> " + neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
 			}
