@@ -406,10 +406,6 @@ public class Peer
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
-
-				// wait for handshake back
-				String messageString = in.readLine();
-				addToMessageQueue(messageString, neighborPeer.PEER_ID);
 			}
 			catch (IOException e)
 			{
