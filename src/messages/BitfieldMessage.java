@@ -1,6 +1,7 @@
 package messages;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import peers.NeighborPeer;
 import peers.Peer;
@@ -25,7 +26,7 @@ public class BitfieldMessage extends Message
 	@Override
 	public void handle()
 	{
-		System.out.println("Bitfield message " + senderID + " -> " + receiverID);
+		System.out.println("Bitfield message " + senderID + " -> " + receiverID + " : " + Arrays.toString(senderBitfield.getBitfield()));
 
 		// If (B ^ ~ A) != 0, send interested to host B
 		// Else, send not interested
