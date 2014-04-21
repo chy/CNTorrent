@@ -8,7 +8,6 @@ import util.Bitfield;
 
 public class BitfieldMessage extends Message
 {
-
 	private Bitfield senderBitfield;
 
 	public BitfieldMessage(int senderID, int receiverID, byte[] bitfieldBytes)
@@ -77,4 +76,7 @@ public class BitfieldMessage extends Message
 		return new String(message); 
 	}
 
+	public byte[] getBitfield(){
+		return senderBitfield.getBitfield(); 
+	}
 }

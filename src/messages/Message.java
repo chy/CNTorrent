@@ -37,6 +37,7 @@ public abstract class Message
 		}
 		switch (messageType)
 		{
+		case -1: return new Handshake(senderID, receiverID); 
 		case 0: return new Choke(senderID, receiverID);
 		case 1: return new Unchoke(senderID, receiverID);
 		case 2: return new Interested(senderID, receiverID);
