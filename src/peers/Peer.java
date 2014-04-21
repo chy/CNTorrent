@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -394,6 +395,8 @@ public class Peer
 			}
 			
 		}
+		
+		System.out.println("preferred peers: " + Arrays.toString(preferredPeers));
 
 	}
 	
@@ -416,6 +419,7 @@ public class Peer
 		
 		Message choke = new Choke(PEER_ID, receiverID); 
 		sendMessage(choke);
+		System.out.println("Unchoking " + receiverID);
 	}
 
 	public void unchoke(int receiverID)
@@ -451,7 +455,7 @@ public class Peer
 				
 				optimisticallyUnchokedPeer = peerIDs[i]; 
 				unchoke(optimisticallyUnchokedPeer); 
-				
+				System.out.println("Optimistically unchoking peer: " + optimisticallyUnchokedPeer);
 				break;
 			}		
 		}
