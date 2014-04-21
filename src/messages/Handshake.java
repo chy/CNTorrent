@@ -18,6 +18,8 @@ public class Handshake extends Message
 	@Override
 	public void handle()
 	{
+		System.out.println("Handshaking " + senderID + " -> " + receiverID);
+
 		// link socket with sender ID
 		Peer.linkSocket(socketID, senderID);
 
@@ -30,7 +32,7 @@ public class Handshake extends Message
 	{
 		// 4-byte index of the file piece
 		byte[] payload = (ByteBuffer.allocate(4)).putInt(senderID).array();
-		byte[] length = (ByteBuffer.allocate(4)).putInt(payload.length).array();
+		byte[] length = (ByteBuffer.allocate(4)).putInt(payload.length + 1).array();
 
 		byte[] message = new byte[5 + payload.length];
 		message[4] = 8;// type handshake

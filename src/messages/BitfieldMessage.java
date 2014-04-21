@@ -25,6 +25,8 @@ public class BitfieldMessage extends Message
 	@Override
 	public void handle()
 	{
+		System.out.println("Bitfield message to " + receiverID + " from " + senderID);
+
 		// If (B ^ ~ A) != 0, send interested to host B
 		// Else, send not interested
 		// update interested, as well
