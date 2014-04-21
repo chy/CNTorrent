@@ -397,12 +397,10 @@ public class Peer
 				throw new RuntimeException(e);
 			}
 
-			// send handshake, wait for handshake back
-			try (PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
-					BufferedReader in = new BufferedReader(new InputStreamReader(
-					clientSocket.getInputStream())))
+			// send handshake
+			try
 			{
-				// send handshake
+				PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
