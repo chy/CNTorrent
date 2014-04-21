@@ -21,6 +21,8 @@ public class Request extends Message
 	public void handle()
 	{
 		// if sending host is unchoked, send the requested data
+		System.out.println("request message " + senderID + " -> " + receiverID + " : " + pieceIndex);
+		
 		NeighborPeer peer = Peer.peers.get(this.senderID);
 		Bitfield myBitfield = Peer.bitfield;
 

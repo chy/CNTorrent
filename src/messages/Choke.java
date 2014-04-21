@@ -18,6 +18,7 @@ public class Choke extends Message{
 		 * 	you are now choked by this peer
 		 * 
 		 */
+		System.out.println("choke message " + senderID + " -> " + receiverID);
 		NeighborPeer chokingPeer = Peer.peers.get(this.senderID); 
 		chokingPeer.peerChoking = true; 
 		

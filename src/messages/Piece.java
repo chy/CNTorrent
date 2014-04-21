@@ -46,7 +46,7 @@ public class Piece extends Message
 		 * 
 		 */
 		//PART 1
-		
+		System.out.println("piece message " + senderID + " -> " + receiverID + " " + pieceIndex);
 		writePieceToFile(piece);
 		
 		NeighborPeer sendingPeer = Peer.peers.get(this.senderID); 

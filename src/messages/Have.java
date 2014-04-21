@@ -25,7 +25,7 @@ public class Have extends Message
 		 * have a piece index and set that index to true in the peer's bitfield that has sent that particular
 		 * piece. senderID is given. check if all of the indices in bitfield is set to true, if so decrement numUnFinishedPeers(Peers class)
 		 */
-
+		System.out.println("have message " + senderID + " -> " + receiverID + " : " + pieceIndex);
 		NeighborPeer neighborPeer = Peer.peers.get(this.senderID);
 
 		Bitfield senderBitfield = neighborPeer.bitfield;

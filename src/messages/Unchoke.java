@@ -20,7 +20,8 @@ public class Unchoke extends Message
 	{
 		// If interested in peer that unchoked you, send request for a random
 		// piece they have that you don't
-
+		System.out.println("Unchoke message " + senderID + " -> " + receiverID);
+		
 		NeighborPeer unchokingPeer = Peer.peers.get(this.senderID);
 		unchokingPeer.peerChoking = true;
 

@@ -12,6 +12,7 @@ public class NotInterested extends Message {
 	public void handle()
 	{
 		//update variables accordingly; sender is not interested in receiver's stuff
+		System.out.println("not interested message " + senderID + " -> " + receiverID);
 		Peer.peers.get(senderID).peerInterested = false; 
 		
 	}
