@@ -14,7 +14,9 @@ public class Bitfield
 
 	public Bitfield(int numBits, boolean fillValue)
 	{
-		bitfield = new byte[numBits / 8];
+		int tempLength = numBits / 8;
+		int length = (tempLength * 8 == numBits) ? tempLength : (tempLength + 1);
+		bitfield = new byte[length];
 		byte fillValueByte = fillValue ? (byte) (0b11111111)
 				: (byte) (0b00000000);
 		Arrays.fill(bitfield, fillValueByte);
