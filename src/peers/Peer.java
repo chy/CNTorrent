@@ -24,13 +24,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import messages.BitfieldMessage;
 import messages.Choke;
 import messages.Handshake;
 import messages.LogMe;
 import messages.Message;
 import messages.Unchoke;
 import util.Bitfield;
+import messages.LogMe;
 
 public class Peer
 {
@@ -149,6 +149,7 @@ public class Peer
 						{
 							BufferedReader in = new BufferedReader(new InputStreamReader(
 									clientSocket.getInputStream()));
+
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
@@ -176,8 +177,6 @@ public class Peer
 						Thread clientSocketThread = new Thread(csh);
 						clientSocketThread.setDaemon(true);
 						clientSocketThread.start();
-
-						sendMessage(new BitfieldMessage(PEER_ID, senderID, Peer.bitfield));
 					}
 				}
 				finally
@@ -206,7 +205,6 @@ public class Peer
 		//logFile for the peer is created when it joins the torrent
 		
 		//logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
-
 
 		lastPreferredUpdateTime = System.currentTimeMillis();
 		lastOpUnchokeUpdateTime = System.currentTimeMillis();
@@ -415,6 +413,7 @@ public class Peer
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
+				System.out.println("Sending handshake: " + PEER_ID + " -> " + neighborPeer.PEER_ID);
 			}
 			catch (IOException e)
 			{
@@ -623,6 +622,7 @@ public class Peer
 				
 				optimisticallyUnchokedPeer = peerIDs[i]; 
 				unchoke(optimisticallyUnchokedPeer);
+
 				//log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
 
 				System.out.println("Optimistically unchoking peer: " + optimisticallyUnchokedPeer);

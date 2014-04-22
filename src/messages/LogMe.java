@@ -15,7 +15,7 @@ public class LogMe {
 	public void createFile( int peer_ID)
 	{
 		String peerID = "log_peer_" + Integer.toString(peer_ID);
-		String fileLocation = "C:/Desktop/project/" + peerID + ".log";
+		String fileLocation = peerID + ".log";
 		
 		
 		try {
