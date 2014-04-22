@@ -149,7 +149,6 @@ public class Peer
 						{
 							BufferedReader in = new BufferedReader(new InputStreamReader(
 									clientSocket.getInputStream()));
-
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
@@ -206,7 +205,8 @@ public class Peer
 		
 		//logFile for the peer is created when it joins the torrent
 		
-		//logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
+		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
+
 
 		lastPreferredUpdateTime = System.currentTimeMillis();
 		lastOpUnchokeUpdateTime = System.currentTimeMillis();
@@ -524,7 +524,7 @@ public class Peer
 				}
 			}
 			
-			//log("neighbor_change",PEER_ID, 0); //log file with preferred peers
+			log("neighbor_change",PEER_ID, 0); //log file with preferred peers
 			
 			while(queue.peek() != null){
 				NeighborPeer p = queue.poll();
@@ -624,8 +624,7 @@ public class Peer
 				
 				optimisticallyUnchokedPeer = peerIDs[i]; 
 				unchoke(optimisticallyUnchokedPeer);
-
-				//log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
+				log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
 
 				System.out.println("Optimistically unchoking peer: " + optimisticallyUnchokedPeer);
 				break;
@@ -652,9 +651,14 @@ public class Peer
 				
 		switch(s){
 		
-		case "TCP": // HANDLE IN HANDSHAKE CLASS
+		case "TCP_to": // HANDLE IN HANDSHAKE CLASS *** also must have this display in console for both sender and receiver
 			logFile.logger.info(time + ": Peer" + peerID + " makes a connection to Peer " + neighborID);
 			break;
+			
+		case "TCP_from": // HANDLE IN HANDSHAKE CLASS *** also must have this display in console for both sender and receiver
+			logFile.logger.info(time + ": Peer" + peerID + " is connected from Peer " + neighborID);
+			break;
+		
 			
 		case "neighbor_change": //*
 			for(int peer_ID:preferredPeers)
