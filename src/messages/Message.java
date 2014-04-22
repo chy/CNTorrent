@@ -10,8 +10,6 @@ public abstract class Message
 	public final int receiverID;
 	Peer logPeer; //created so that subclasses of Message will have access to the log method in Peer class
 
-	
-
 	public Message(int senderID, int receiverID)
 	{
 		this.senderID = senderID;	

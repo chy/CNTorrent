@@ -23,6 +23,8 @@ public class Piece extends Message
 		super(senderID, receiverID);
 		this.pieceIndex = pieceIndex;
 		this.piece = piece; 
+		logPeer = new Peer(receiverID);
+
 	}
 	
 	public Piece (int senderID, int receiverID, int pieceIndex){
@@ -77,6 +79,9 @@ public class Piece extends Message
 			}
 			Peer.sendMessage(new Request(receiverID, senderID, pieceIndex)); 
 		}
+		
+		logPeer.log("download_piece", receiverID, senderID, pieceIndex, logPeer.numPieces); //handles log file: Peer, receiverID received a piece from Peer, senderID, for the Piece, pieceIndex, and now has, numPieces, number of pieces
+
 	}
 	
 	public void writePieceToFile(byte[] piece){

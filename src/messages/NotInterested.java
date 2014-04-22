@@ -8,12 +8,16 @@ public class NotInterested extends Message {
 
 	public NotInterested (int senderID, int receiverID){
 		super(senderID, receiverID);
+		logPeer = new Peer(receiverID); //create peer object based on receiver ID so log method in Peer class will write to the receiver ID's log file
+		
 	}
 	public void handle()
 	{
 		//update variables accordingly; sender is not interested in receiver's stuff
 		System.out.println("not interested message " + senderID + " -> " + receiverID);
 		Peer.peers.get(senderID).peerInterested = false; 
+		logPeer.log("receive_noInterest", receiverID, senderID);//handles log file: Peer, receiverID received a not interested message from Peer, senderID
+
 		
 	}
 	public String encodeMessage()
