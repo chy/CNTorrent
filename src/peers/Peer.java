@@ -57,7 +57,7 @@ public class Peer
 	private int portNumber;
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
-	private LogMe logFile; // this will be the object that handles Log
+	private LogMe logFile = new LogMe(); // this will be the object that handles Log
 	Unchoke no_choke;//needed to retrieve receiver and sender ID from Unchoke method
 
 	
@@ -268,7 +268,8 @@ public class Peer
 		// initialization after reading common config file
 		int tempNumPieces = fileSize / pieceSize;
 		numPieces = (tempNumPieces * pieceSize == fileSize) ? tempNumPieces : (tempNumPieces + 1);
-
+		preferredPeers = new int[nPref];
+		
 		// read peer info config file
 		readPeerInfoConfig();
 
