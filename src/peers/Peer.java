@@ -24,13 +24,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import messages.BitfieldMessage;
 import messages.Choke;
 import messages.Handshake;
 import messages.LogMe;
 import messages.Message;
 import messages.Unchoke;
 import util.Bitfield;
-import messages.LogMe;
 
 public class Peer
 {
@@ -177,6 +177,8 @@ public class Peer
 						Thread clientSocketThread = new Thread(csh);
 						clientSocketThread.setDaemon(true);
 						clientSocketThread.start();
+
+						sendMessage(new BitfieldMessage(PEER_ID, senderID, Peer.bitfield));
 					}
 				}
 				finally

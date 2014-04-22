@@ -2,8 +2,6 @@ package messages;
 
 import java.nio.ByteBuffer;
 
-import peers.Peer;
-
 public class Handshake extends Message
 {
 
@@ -15,10 +13,7 @@ public class Handshake extends Message
 	@Override
 	public void handle()
 	{
-		System.out.println("Handshaking " + senderID + " -> " + receiverID);
-
-		// send bitfield message
-		Peer.sendMessage(new BitfieldMessage(receiverID, senderID, Peer.bitfield));
+		// not called
 	}
 
 	@Override
