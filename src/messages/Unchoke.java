@@ -13,6 +13,8 @@ public class Unchoke extends Message
 	public Unchoke(int senderID, int receiverID)
 	{
 		super(senderID, receiverID);
+		logPeer = new Peer(receiverID); //create peer object based on receiver ID so log method in Peer class will write to the receiver ID's log file
+
 	}
 
 	@Override
@@ -41,6 +43,9 @@ public class Unchoke extends Message
 			Request requestMessage = new Request(receiverID, senderID, pieceIndex);
 			Peer.sendMessage(requestMessage);
 		}
+		
+		logPeer.log("unchoke", receiverID, senderID); //handles log file: Peer, receiverID is unchoked by Peer, senderID
+
 	}
 	public String encodeMessage()
 	{
@@ -53,4 +58,15 @@ public class Unchoke extends Message
 		
 		return new String(message); 
 	}
+	
+	public int getReceiverID()
+	{
+		return receiverID;
+	}
+	
+	public int getSenderID()
+	{
+		return senderID;
+	}
+	
 }

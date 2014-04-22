@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
@@ -56,8 +57,10 @@ public class Peer
 	private int portNumber;
 	private final AtomicBoolean allPeersDone = new AtomicBoolean(false);
 	private BlockingQueue<MessagePair> messageQueue = new LinkedBlockingQueue<MessagePair>();
-	private LogMe logFile = new LogMe(); // this will be the object that handles Log
+	private LogMe logFile; // this will be the object that handles Log
+	Unchoke no_choke;//needed to retrieve receiver and sender ID from Unchoke method
 
+	
 	private ServerSocket serverSocket;
 	private static List<ClientSocketHandler> clientSockets = new ArrayList<ClientSocketHandler>();
 
@@ -96,14 +99,14 @@ public class Peer
 	public Peer(int peerID)
 	{
 		this.PEER_ID = peerID; // this should be supplied as a command-line parameter when PeerProcess is started
-		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
 	}
 	
 	/**
 	 * This method is called by PeerProcess. It will contain the main loop of our
 	 * program.
+	 * @throws IOException 
 	 */
-	public void run()
+	public void run() throws IOException
 	{
 		// get info from config files
 		System.out.println("Reading config files");
@@ -149,7 +152,6 @@ public class Peer
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
-							System.out.println("Received handshake " + m.senderID + " -> " + PEER_ID); 
 						}
 						catch (IOException e)
 						{
@@ -200,6 +202,11 @@ public class Peer
 		// establish connections with all peers above this peer in the peer info config files
 		System.out.println("Establishing connections with peers already in the torrent");
 		joinTorrent();
+		
+		//logFile for the peer is created when it joins the torrent
+		
+		//logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
+
 
 		lastPreferredUpdateTime = System.currentTimeMillis();
 		lastOpUnchokeUpdateTime = System.currentTimeMillis();
@@ -406,7 +413,6 @@ public class Peer
 			{
 				PrintWriter out =  new PrintWriter(clientSocket.getOutputStream(), true);
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
-				System.out.println("Sending handshake: " + PEER_ID + " -> " + neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
 			}
@@ -439,8 +445,16 @@ public class Peer
 		}
 	}
 
-	private void leaveTorrent()
+	private void leaveTorrent() throws IOException
 	{
+		Iterator iter = peers.keySet().iterator();
+		while(iter.hasNext()){
+			serverSocket.close();
+			
+		}
+		log("download_complete", PEER_ID, 0);
+		//sendMessage(new BitfieldMessage(PEER_ID, neighborPeer.PEER_ID, Peer.bitfield));
+
 		// Close all connections, exit
 	}
 
@@ -508,6 +522,9 @@ public class Peer
 					System.err.println("Error! peer.prefpeers trying to add an unconnected-to peer to preferred peers"); 
 				}
 			}
+			
+			//log("neighbor_change",PEER_ID, 0); //log file with preferred peers
+			
 			while(queue.peek() != null){
 				NeighborPeer p = queue.poll();
 				if(p != null){
@@ -605,7 +622,9 @@ public class Peer
 			if(peer.peerInterested && peer.amChoking){
 				
 				optimisticallyUnchokedPeer = peerIDs[i]; 
-				unchoke(optimisticallyUnchokedPeer); 
+				unchoke(optimisticallyUnchokedPeer);
+				//log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
+
 				System.out.println("Optimistically unchoking peer: " + optimisticallyUnchokedPeer);
 				break;
 			}		
@@ -624,34 +643,66 @@ public class Peer
 		}
 	}
 	
-	public void log(String s)
+	public void log(String s, int peerID, int neighborID)
 	{ 
 		String time = time() + ":";
+		String listOfIDs = null;
 				
 		switch(s){
-		case "TCP":
-			logFile.logger.info(time + "Peer" + PEER_ID + " makes a connection to Peer ");
+		
+		case "TCP": // HANDLE IN HANDSHAKE CLASS
+			logFile.logger.info(time + ": Peer" + peerID + " makes a connection to Peer " + neighborID);
 			break;
-		case "neighbor_change":
+			
+		case "neighbor_change": //*
+			for(int peer_ID:preferredPeers)
+			{ 
+				listOfIDs = Integer.toString(peer_ID) + "," + listOfIDs;
+			}
+			logFile.logger.info(time + "Peer" + peerID + " has the prefered neighbors " + listOfIDs);
 			break;
-		case "opt_unchoke_neighbor_change":
+			
+		case "opt_unchoke_neighbor_change": //*
+			logFile.logger.info(time + ": Peer" + peerID + " has the optimistically-unchoked neighbor " + neighborID );
+			break; 
+			
+		case "unchoke": //*
+			logFile.logger.info(time + ": Peer" + peerID + " is unchoked by " + neighborID);
 			break;
-		case "unchoke":
+			
+		case "choke": //*
+			logFile.logger.info(time + ": Peer" + peerID + " is choked by " + neighborID);
 			break;
-		case "choke":
+			
+		case "receive_interested": //*
+			logFile.logger.info(time + ": Peer" + peerID + " received an 'interested' message from " + neighborID);
 			break;
-		case "receive_have":
+			
+		case "receive_noInterest": //*
+			logFile.logger.info(time + ": Peer" + peerID + " received a 'not interested' message from " + neighborID );
 			break;
-		case "receive_interested":
-			break;
-		case "receive_noInterest":
-			break;
-		case "download_piece":
-			break;
-		case "download_complete":
+			
+		case "download_complete"://*
+			logFile.logger.info(time + ": Peer " + peerID + "has downloaded the complete file.");
 			break;
 		}
 
+	}
+	
+	public void log(String s, int peerID, int neighborID, int pieceIndex, int numPieces)
+	{
+		String time = time() + ":";
+		switch(s)
+		{
+		case "receive_have"://*
+			logFile.logger.info(time + ": Peer" + peerID + " received a 'have' message from " + neighborID + "for the piece " + pieceIndex);
+			break;
+		
+		case "download_piece": //*
+			logFile.logger.info(time + ": Peer" + peerID + " has downloaded the piece " + pieceIndex + "from" + neighborID + ". Now the number of pieces it has is " + numPieces );
+			break;
+		
+		}
 	}
 	
 	public String time()
@@ -662,5 +713,4 @@ public class Peer
 		
 		return sdf.format(cal.getTime());
 	}
-
 }
