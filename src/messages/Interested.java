@@ -13,6 +13,8 @@ public class Interested extends Message
 	public Interested(int senderID, int receiverID)
 	{
 		super(senderID, receiverID);
+		logPeer = new Peer(receiverID); //create peer object based on receiver ID so log method in Peer class will write to the receiver ID's log file
+
 	}
 
 	@Override
@@ -44,6 +46,9 @@ public class Interested extends Message
 			Request request = new Request(senderID, receiverID, pieceIndex);					
 			Peer.sendMessage(request);
 		}
+		
+		logPeer.log("receive_interested", receiverID, senderID); //handles log file: Peer, receiverID received an interested message by Peer, senderID
+		
 	}
 	public String encodeMessage()
 	{

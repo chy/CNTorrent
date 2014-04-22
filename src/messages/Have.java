@@ -14,7 +14,9 @@ public class Have extends Message
 	public Have(int senderID, int receiverID, int pieceIndex)
 	{
 		super(senderID, receiverID);
-		this.pieceIndex = pieceIndex; 
+		this.pieceIndex = pieceIndex;
+		logPeer = new Peer(receiverID); //create peer object based on receiver ID so log method in Peer class will write to the receiver ID's log file
+
 	}
 
 	@Override
@@ -46,6 +48,9 @@ public class Have extends Message
 			Peer.numUnfinishedPeers--;
 			neighborPeer.isDone = true;
 		}
+		
+		logPeer.log("receive_have",receiverID,senderID,pieceIndex, 0); //handles log file: Peer, receiverID received a have message from Peer, senderID, for the Piece, pieceIndex
+
 	}
 	
 	public String encodeMessage()

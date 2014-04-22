@@ -1,4 +1,5 @@
 package messages;
+import peers.Peer;
 
 import java.nio.ByteBuffer;
 
@@ -6,7 +7,10 @@ public abstract class Message
 {
 
 	public final int senderID; 
-	public final int receiverID; 
+	public final int receiverID;
+	Peer logPeer; //created so that subclasses of Message will have access to the log method in Peer class
+
+	
 
 	public Message(int senderID, int receiverID)
 	{
