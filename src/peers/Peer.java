@@ -149,6 +149,7 @@ public class Peer
 						{
 							BufferedReader in = new BufferedReader(new InputStreamReader(
 									clientSocket.getInputStream()));
+							System.out.println("Received handshake " + m.senderID + " -> " + PEER_ID); 
 							String messageString = in.readLine();
 							Message m = Message.decodeMessage(messageString, -1, PEER_ID);
 							senderID = m.senderID;
@@ -203,7 +204,7 @@ public class Peer
 		
 		//logFile for the peer is created when it joins the torrent
 		
-		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
+	//	logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
 
 
 		lastPreferredUpdateTime = System.currentTimeMillis();
@@ -413,6 +414,7 @@ public class Peer
 				Handshake handshake = new Handshake(PEER_ID, neighborPeer.PEER_ID);
 				String encodedMessage = handshake.encodeMessage();
 				out.println(encodedMessage);
+				System.out.println("Sending handshake: " + PEER_ID + " -> " + neighborPeer.PEER_ID);
 			}
 			catch (IOException e)
 			{
@@ -521,7 +523,7 @@ public class Peer
 				}
 			}
 			
-			log("neighbor_change",PEER_ID, 0); //log file with preferred peers
+	//		log("neighbor_change",PEER_ID, 0); //log file with preferred peers
 			
 			while(queue.peek() != null){
 				NeighborPeer p = queue.poll();
@@ -621,7 +623,7 @@ public class Peer
 				
 				optimisticallyUnchokedPeer = peerIDs[i]; 
 				unchoke(optimisticallyUnchokedPeer);
-				log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
+//				log("opt_unchoke_neighbor_change", no_choke.getReceiverID(), no_choke.getSenderID());
 
 				System.out.println("Optimistically unchoking peer: " + optimisticallyUnchokedPeer);
 				break;
