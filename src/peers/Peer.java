@@ -64,9 +64,6 @@ public class Peer
 	private ServerSocket serverSocket;
 	private static List<ClientSocketHandler> clientSockets = new ArrayList<ClientSocketHandler>();
 
-	private long lastPreferredUpdateTime; // in milliseconds
-	private long lastOpUnchokeUpdateTime; // in milliseconds
-
 	private class MessagePair
 	{
 
@@ -208,8 +205,8 @@ public class Peer
 		logFile.createFile(PEER_ID); //this will create a logFile for a Peer when a Peer is created
 
 
-		lastPreferredUpdateTime = System.currentTimeMillis();
-		lastOpUnchokeUpdateTime = System.currentTimeMillis();
+		long lastPreferredUpdateTime = System.currentTimeMillis(); // in milliseconds
+		long lastOpUnchokeUpdateTime = System.currentTimeMillis(); // in milliseconds
 
 		// main loop
 		System.out.println("Start main loop");

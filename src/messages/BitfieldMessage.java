@@ -9,6 +9,7 @@ import util.Bitfield;
 
 public class BitfieldMessage extends Message
 {
+
 	private Bitfield senderBitfield;
 
 	public BitfieldMessage(int senderID, int receiverID, byte[] bitfieldBytes)
@@ -26,7 +27,8 @@ public class BitfieldMessage extends Message
 	@Override
 	public void handle()
 	{
-		System.out.println("Bitfield message " + senderID + " -> " + receiverID + " : " + Arrays.toString(senderBitfield.getBitfield()));
+		System.out.println("Bitfield message " + senderID + " -> " + receiverID
+				+ " : " + Arrays.toString(senderBitfield.getBitfield()));
 
 		// If (B ^ ~ A) != 0, send interested to host B
 		// Else, send not interested
@@ -56,29 +58,33 @@ public class BitfieldMessage extends Message
 		}
 		else
 		{ // send not interested
-			Message notInterestedMessage = new NotInterested(receiverID, senderID);
+			Message notInterestedMessage = new NotInterested(receiverID,
+					senderID);
 			Peer.sendMessage(notInterestedMessage);
 		}
 
 	}
-	
+
 	public String encodeMessage()
-	{	byte [] bitfield = senderBitfield.getBitfield(); 
-	
+	{
+		byte[] bitfield = senderBitfield.getBitfield();
+
 		ByteBuffer b = ByteBuffer.allocate(4);
-		b.putInt(bitfield.length); 
-		byte [] length = b.array(); 
-	
-		byte [] message = new byte[5+bitfield.length]; 
-		message[4] = 5; //type bitfield
-		
-		System.arraycopy(length, 0, message, 0, 4); 
-		System.arraycopy(bitfield, 0, message, 5, bitfield.length); 
-		
-		return new String(message); 
+		b.putInt(bitfield.length);
+		byte[] length = b.array();
+
+		byte[] message = new byte[5 + bitfield.length];
+		message[4] = 5; // type bitfield
+
+		System.arraycopy(length, 0, message, 0, 4);
+		System.arraycopy(bitfield, 0, message, 5, bitfield.length);
+
+		return new String(message);
 	}
 
-	public byte[] getBitfield(){
-		return senderBitfield.getBitfield(); 
+	public byte[] getBitfield()
+	{
+		return senderBitfield.getBitfield();
 	}
+
 }
