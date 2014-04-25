@@ -589,7 +589,7 @@ public class Peer
 		
 		Message choke = new Choke(PEER_ID, receiverID); 
 		sendMessage(choke);
-		System.out.println("Unchoking " + receiverID);
+		System.out.println("Choking " + receiverID);
 	}
 
 	public void unchoke(int receiverID)
